@@ -1,34 +1,6 @@
 # Handbook Links
 
-[![License: CC BY-NC-ND](https://img.shields.io/badge/License-CC%20BY--NC--ND-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
-
+[![License: GFDL v1.3](https://img.shields.io/badge/License-GFDL%20v1.3-blue.svg)](https://www.gnu.org/licenses/fdl-1.3.html)
 
 - ### [Alan-Handbook.pdf](alan-handbook.pdf)
 - ### [Alan-Handbook TeX Sections](sections/)
-- ### [Alan Specifications TeX Sections](sections/02-specifications/)
-- ### [Alan Testing Specifications TeX Sections](sections/03-testing/)
-
-## Todo
-
-- [ ] Introduction 
-  - [ ] Alan
-    - [ ] Goals
-    - [ ] Outcomes
-    - [ ] High-Level Architecture
-    - [ ] Terminologies
-  - [ ] Preliminaries (Ongoing)
-    - [ ] Notations
-    - [ ] Numeral Systems
-    - [ ] Data Representation
-- [ ] Specification
-  - [ ] Encoding Scheme (Ongoing)
-  - [ ] Key-Value Storage 
-  - [ ] Client
-  - [ ] Runtime
-  - [ ] Interface
-- [ ] Testing
-  - [ ] Encoding Scheme
-  - [ ] Key-Value Storage 
-  - [ ] Client
-  - [ ] Runtime
-  - [ ] Interface
