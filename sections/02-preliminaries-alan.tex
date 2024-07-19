@@ -1,0 +1,215 @@
+% Copyright (C) 2024 Auguth Research Foundation.
+%
+% This file is part of ALAN Formal Specification Handbook.
+% A.L.A.N - Abstract Logical Assembly Network.
+%
+% License
+% --------
+% This work is licensed under the GNU Free Documentation License.
+% To view a copy of this license, visit https://www.gnu.org/licenses/fdl-1.3.html
+%
+% File Information
+% -----------------
+% - Title : ALAN - Handbook
+% - Author : Joby J Reuben
+% - Affiliation : Auguth Research Foundation
+% - Email : joby@auguth.org
+% - Created At : Bangalore, India
+% - Type : Latex-Subfile(.tex)
+% - Path : "alan-handbook(root)/sections/02-preliminaries-alan.tex"
+%
+% Contributors Message 
+% ---------------------
+% 
+%
+\documentclass[../alan-handbook.tex]{subfiles}
+\begin{document}
+
+\section{Preliminaries} \label{Preliminaries}
+
+\subsection{Data Representation}  \label{DataRepresentation}
+
+\subsubsection{Byte Array} \label{ByteArray}
+
+Byte Array or \textit{Sequence of Bytes}, denoted as $\mathbb{B}$ of length $n$ is referred as
+
+$$\mathbb{B}_n=\{\mathbb{B}_0,\mathbb{B}_1,\ldots,\mathbb{B}_{n-1}\}$$
+$\mathbb{B}$ is in the form - of conventional zero-based indexing where the first element of the set is represented as the zeroth element. Additionally, $\mathbb{B}_i$, a single byte shall contain 8-bits $(b_i \in \mathbb{B}_i)$ where, each bit $b_i \in \{0,1\}$. In decimal representation i.e., \texttt{base-10} each byte shall be $0 \leq \mathbb{B}_i \leq 255$.
+
+The concatenation of byte arrays $A=\{A_0,A_1,\ldots,A_{n-1}\}$ of length $n$, and $B=\{B_0,B_1,\ldots,B_{m-1}\}$ of length $m$ is referred as
+
+$$A \parallel B := \{A_0,A_1,\ldots,A_{n-1},B_0,B_1,\ldots,B_{m-1}\}$$
+
+Throughout the inner sections of the document, a byte array is described as a vector type (see Section \ref{Vector}) of an 8-bit unsigned integer \texttt{u8} (see Section \ref{Unsigned-Integer}) elements i.e., $\texttt{vec[u8]}$ or an array of \texttt{u8} elements i.e., $\texttt{ary[u8:N]}$ encoded in little endian \ref{LittleEndian} format. 
+
+\subsubsection{Bitwise Representation} \label{BitwiseRepresentation}
+
+For a given byte $0\leq \mathbb{B} \leq 255$ in decimal representation i.e., \texttt{base-10}, the byte's \textit{bitwise representation} in bits $b_i \in \{0,1\}$ i.e., \texttt{base-2} is defined as:
+$$\mathbb{B} = \{b_7,\ldots b_0\}$$
+
+Alternatively we can denote a bit of a byte using $$b^{\text{byte index}}_{\text{bit index}}$$
+
+This representation implies that the bits $b_7$ through $b_0$ constitute the binary representation of the byte $\mathbb{B}$. In binary representation, the bits are typically indexed from right to left, starting with the \textit{least significant bit} (LSb) at position 0, and increasing toward the \textit{most significant bit} (MSb). 
+
+Most Significant Bits carry higher values such as $2^7=128$ compared to Least significant Bits $2^4=16$. Therefore, $b_7$ - one of 8 bits of a byte represents the leftmost bit (MSb), and $b_0$ represents the rightmost bit (LSb).
+
+Conversion of bitwise representation to decimal notation shall be defined as
+
+$$\mathbb{B} = \{2^7\cdot b_7,\ldots,2^0 \cdot b_0\}$$
+
+\subsubsection{Hexadecimal Representation} \label{HexadecimalRepresentation}
+
+4-bits or a \textit{nibble} can be represented in hexadecimal or \texttt{base-16} format for readability as opposed to \texttt{base-2} binary format, with a prefix of $\text{0x} \parallel \text{HEX-DIGITS}$ to denote \texttt{base-16}.
+
+Each byte will contain 2 hexadecimal values, where,
+$$\mathbb{B}=\Call{Hex-Encode}{\{b_7,\ldots,b_4\}} \parallel \Call{Hex-Encode}{\{b_3,\ldots,b_0\}}$$
+\begin{table}[h]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|}
+\hline
+\textbf{Binary} & 0000 & 0001 & 0010 & 0011 & 0100 & 0101 & 0110 & 0111 \\ \hline
+\textbf{Hex} & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 \\ \hline
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[h]
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|}
+\hline
+\textbf{Binary} & 1000 & 1001 & 1010 & 1011 & 1100 & 1101 & 1110 & 1111 \\ \hline
+\textbf{Hex} & 8 & 9 & A & B & C & D & E & F \\ \hline
+\end{tabular}%
+}
+\end{table}
+
+\subsubsection{UTF-8} \label{UTF-8}
+
+UTF is an 8-bit byte array \ref{ByteArray} per character encoding system, extending the ASCII text which is only able represents a single byte. UTF-8 can represent more international languages, and Unicode characters/symbols. For non-ASCII characters such as symbols, emojis, etc, UTF-8 characters will have multiple bytes to represent the character.
+
+A Character's unicode can be fetched \href{https://www.charset.org/utf-8}{here} for reference, and more detailed description of the standard is given in its \href{https://en.wikipedia.org/wiki/UTF-8}{wiki-page}. As UTF encoding is a standard followed by most internet protocols, strings, and characters are interpreted, and stored as UTF bytes.
+
+\subsection{Logic Constructs} \label{LogicConstructs}
+
+Throughout ALAN's specifications, functions, math expressions, and algorithms are written using the logic constructs defined here. These constructs form a foundational framework for creating near-high-level pseudocode, and pseudo-functions, which directly assists in evaluating its suitability for implementation. Implementations are encouraged to follow to the algorithms, and structures while developing language-specific executable code, ensuring ease of maintainability. As this specification handbook is language-agnostic, and incorporates higher-level logic constructs, it serves as a comprehensive reference for ALAN's diverse implementations.
+
+\subsubsection{Operators} \label{Operators}
+
+Operators are symbolic representations used to denote specific operations or relationships between two or more elements in logics. 
+
+\begin{itemize}
+    \item $\wedge$ : Denotes $\texttt{AND}$ Operator 
+    \item $\vee$ : Denotes $\texttt{OR}$ Operator
+\end{itemize}
+
+\subsubsection{Set Notations} \label{SetNotations}
+
+Set notations are fundamentals for defining, and manipulating collections of objects. These notations provide a precise way to describe relationships between elements, and operations within sets. Each symbol carries specific meanings, and rules that aid in expressing set-related concepts for effectively implementing the Alan's Specification.
+
+\begin{itemize}
+    \item $a(A(\mathbb{A}))$ : $a$ belongs to set $A$, and $A$ belongs to set $\mathbb{A}$
+    \item $\in$ : Represents \textit{element of} E.g., $i \in I$ denotes $i$ is an element of set $I$
+    \item $i \in b_i(\mathbb{B}): i>0$ Set builder notation which constructs a set, here the set includes all elements $b_i$ with condition $i > 0$ of set $\mathbb{B}$. Here the partition $:$ denotes \textit{such that}
+    \item $\parallel $: Denotes concatenation operation of two sets or an element to a set.
+    \item $\emptyset$: Represents an empty set with an empty value or absence of data
+    \item $\mid S \mid$: Represents the cardinality of the set i.e., the number of elements in the set $S$
+    \item $S \gets S \setminus e_i$: Represents the set minus operation i.e., $\setminus$ where the element $e_i$ is removed from the set $S$. This operation does not imply assigning a zero value, as all elements indexed by $e_0, \ldots, e_n$ in set $S$ are updated to reflect the removal of $e_i$.
+\end{itemize}
+
+\subsubsection{Types} \label{Types}
+
+For each individual piece of data required for executing software, or resulting from its operations, attributes such as size, and the range of possible values are crucial. Types ensure data safety, integrity, and facilitate efficient memory usage. A \texttt{type} specifies how a hardware interprets, and manipulates data in memory, providing essential information for memory allocation, data representation, and ensuring correct operation according to predefined rules, and constraints. The specification defines various types to enhance logic, and define their attributes.
+
+\subsubsubsection{Bool} \label{Bool}
+
+A Boolean value denoted by $\texttt{bool}$ returns either $1 \ \vee \ 0$ i.e., $\texttt{true} \ \vee \ \texttt{false}$
+$$\texttt{bool} \in  \{0,1\}$$
+\subsubsubsection{Unsigned Integer} \label{Unsigned-Integer}
+
+An Unsigned Integer, denoted by \texttt{uN}, where \texttt{N} can take values such as $\{8,16,32,64,128\}$ represents a non-negative integer where its byte length is based on its total bits \texttt{N}. It is normally represented in big endian format $u={\mathbb{B}_0,\ldots,\mathbb{B}_n}$. 
+
+\begin{itemize}
+    \item Unsigned Integer 8 bit : $ \texttt{u8} = 0 \leq \texttt{u8} < {2^{8}}$
+    \item Unsigned Integer 16 bit : $ \texttt{u16} = 0 \leq \texttt{u16} < 2^{16}$
+    \item Unsigned Integer 32 bit : $ \texttt{u32} = 0 \leq \texttt{u32} < 2^{32}$
+    \item Unsigned Integer 64 bit : $ \texttt{u64} = 0 \leq \texttt{u64} < 2^{64}$
+    \item Unsigned Integer 128 bit : $ \texttt{u128} = 0 \leq \texttt{u128} < 2^{128}$
+    \item Unsigned Integer size : $\texttt{size}$ depends on target architecture i.e., 64 bit - \texttt{u64} or 32 bit - \texttt{u32}
+\end{itemize}
+
+\subsubsubsection{Signed Integer} \label{Signed-Integer}
+
+A Signed Integer, denoted by \texttt{iN}, where \texttt{N} can take values such as $\{8,16,32,64,128\}$, represents integers that can be positive, negative, or zero. Its byte length is based on its total bits \texttt{N}. In case of negative integer, it is typically represented in two's complement format.
+
+\begin{itemize}
+    \item Signed Integer 8-bit: $  \texttt{i8} = -2^{7} \leq \texttt{i8} < 2^{7}$
+    \item Signed Integer 16-bit: $ \texttt{i16} = -2^{15} \leq \texttt{i16} < 2^{15}$
+    \item Signed Integer 32-bit: $ \texttt{i32} = -2^{31} \leq \texttt{i32} < 2^{31}$
+    \item Signed Integer 64-bit: $ \texttt{i64} = -2^{63} \leq \texttt{i64} < 2^{63}$
+    \item Signed Integer 128-bit: $ \texttt{i128} = -2^{127} \leq \texttt{i128} < 2^{127}$
+    \item Signed Integer size : $\texttt{size}$ depends the target architecture i.e., 64 bit - \texttt{u64} or 32 bit - \texttt{u32}
+\end{itemize}
+
+\subsubsubsection{Floating Integer} \label{Floating-Integer}
+
+A Float, denoted by \texttt{fN}, where \texttt{N} can take values such as $\{32, 64\}$, represents real numbers $\mathbb{R}$ using floating-point representation. Floating-point numbers are used to represent numbers that may have a fractional part or require a larger range than integers.
+
+\begin{itemize}
+    \item Float 32-bit (Single Precision): $ \texttt{f32} =  \leq \texttt{f32} < $ 
+    \item Single-precision floating-point numbers (32-bit) provide approximately 7 decimal digits or 23 binary digits of precision. 
+    \item Float 64-bit (Double Precision): $ \texttt{f64} =  \leq \texttt{f64} < $ 
+    \item Double-precision floating-point numbers (64-bit) provide approximately 15-16 decimal digits or 53 binary digits of precision. 
+\end{itemize}
+
+\subsubsubsection{Character} \label{Character}
+
+A \texttt{char} type typically represents a single Unicode character encoded in UTF-8 encoded format \ref{UTF-8}. In UTF-8 encoding, characters are typically 4 bytes in length with a range to represent 1,048,576 unicode characters.
+
+\subsubsubsection{String} \label{String}
+
+A String i.e., \texttt{str} type represents a sequence of unicode characters with its empty bytes excluded (assumption).
+
+\subsubsubsection{Array} \label{Array}
+
+An Array is a fixed collection of values of same type ${\texttt{ary[type:N]}}$, where $\texttt{N}$ denotes the number of elements of same type.
+
+
+\subsubsubsection{Vector} \label{Vector}
+
+A Vector is a dynamic array of same type ${\texttt{vec[type]}}$ where the length is not fixed.
+
+
+\subsubsubsection{Tuple} \label{Tuple}
+
+A Tuple is a fixed collection of values of different types ${\texttt{tup}}$ 
+
+\subsubsection{Function} \label{Function}
+
+A function represented with a \texttt{Function Name}{} encapsulates a set of instructions designed to perform a specific task or computation. A function may or may not accept inputs, processes them according to its defined logic, and returns a specific output. For instance, a function might calculate the sum of two integers $a$, and $b$, where both $a$, and $b$'s types are defined along with its output value's type.
+
+Inputs of a function, also known as parameters, are variables provided to the function when it is called or executed. These inputs specify the data that the function will operate on. For example, provided that there is a sum function \Call{Sum}{$a,b$}, where $a$, and $b$ are inputs of type $\texttt{u8}$ i.e., \Call{Sum}{$a^{\texttt{u8}},b^{\texttt{u8}}$}.
+
+The return value of a function specifies the data type of the result it produces after execution. In the sum function, the return type $\texttt{u8}$ i.e., $\Call{SUM}{a^{\texttt{u8}},b^{\texttt{u8}}} \to k^{\texttt{u8}}$  indicates that the function will return an unsigned integer value with bounds of 8-bits.
+
+\subsubsection{Conditional Statements} \label{ConditionalStatements}
+
+Conditional statements within a function, control the flow of execution based on given conditions. These statements include $\texttt{if (condition) (logic)}$, $\texttt{else if (condition) (logic)}$ (optional), and $\texttt{else (logic)}$ which allow functions to evaluate different conditions, and execute specific blocks of logic that require different actions based on varying scenarios.
+
+\subsubsection{Loop Constructs} \label{LoopConstructs}
+
+Loop constructs allow for repetitive execution of a block of instructions within a function until a specific condition is met. The loop terminates if the condition is not met. Here are different types of loops:
+
+\begin{enumerate}
+    \item $\texttt{for all (condition) (logic)}$: Iterating over all elements of a set or collection when the condition or scenario defined is met.
+    \item $\texttt{while (condition) do (logic)}$: Logic execution based on conditions provided is met. 
+\end{enumerate}
+
+\subsubsection{Storage} \label{Storage}
+
+Variables in algorithms, and functions prefixed with tilde : $\tilde{v}$ denote memory variables that undergo garbage collection. This implies that such variables are erased from memory after the function where $\tilde{v}$ is utilized terminates i.e., when the variable goes out of its memory scope. In contrast, variables lacking the $\tilde{}$ symbol are intended to be stored persistently in storage memory. These persistent variables can be retrieved by the function whenever they are needed for subsequent operations.
+
+\subsubsection{Concurrency} \label{Concurrency}
+
+The algorithms described in this specification include a logic construct designed to define concurrent instructions, which can enhance computational performance by dividing instructions among multiple threads. This construct is denoted by $\texttt{concurrent(n)}$, where $\texttt{n}$ specifies the number of concurrent threads required. Following this, a set of individual instructions or operations is provided that can independently execute on separate threads. The concurrent process concludes once all operations across these threads have completed. Algorithms can be evaluated for grouping of instructions under a concurrent operation based on write access to distinct memory or storage locations.
+
+\end{document}

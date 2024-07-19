@@ -1,0 +1,97 @@
+% Copyright (C) 2024 Auguth Research Foundation.
+%
+% This file is part of ALAN Formal Specification Handbook.
+% A.L.A.N - Abstract Logical Assembly Network.
+%
+% License
+% --------
+% This work is licensed under the GNU Free Documentation License.
+% To view a copy of this license, visit https://www.gnu.org/licenses/fdl-1.3.html
+%
+% File Information
+% -----------------
+% - Title : ALAN - Handbook
+% - Author : Joby J Reuben
+% - Affiliation : Auguth Research Foundation
+% - Email : joby@auguth.org
+% - Created At : Bangalore, India
+% - Type : Latex-Subfile(.tex)
+% - Path : "alan-handbook(root)/sections/08-supplementary-alan.tex"
+%
+% Contributors Message 
+% ---------------------
+% 
+%
+\documentclass[../alan-handbook.tex]{subfiles}
+\begin{document}
+
+\section{Supplementary Functions} \label{SupplementaryFunctions}
+
+This supplementary section includes descriptions or specifications of feature functions of programming languages, categorized into specific operations. These functions can be called by multiple functions across ALAN's specifications. Implementations may choose to ignore or include these logic depending on the availability of the necessary feature in the programming language or its standard libraries. It is advised to ensure that the feature functions take the exact parameters of the specified data types, and provide the output in the desired data type. 
+
+\subsection{Length Functions} \label{SupplementaryLengthFunctions}
+
+\subsubsection{LenBytes()} \label{LenBytes}
+
+\Call{LenBytes}{$n^{\texttt{type}}$} returns a \texttt{u-size} data type value which represents the number of bytes occupied by the data type $n^{\texttt{type}}$ in memory. This function helps determine the memory footprint of a given type, providing how much space it consumes.
+
+\subsubsection{NumElements()} \label{NumElements}
+
+\Call{NumElements}{$n^{\texttt{vec} \vee \texttt{ary} \vee \texttt{tup}}$} returns a \texttt{u-size} data type value which represents the number of elements in the sequence $n^{\texttt{vec} \vee \texttt{ary} \vee \texttt{tup}}$. The number of elements is known at compile time for data types such as arrays (see Section \ref{Array}) and tuples (see Section \ref{Tuple}). However, for dynamic sequences like vectors (see Section \ref{Vector}), the length is determined at runtime.
+
+\subsection{Type Conversions} \label{SupplementaryTypeConversions}
+
+\subsubsection{LeByteArray()} \label{LeByteArray}
+
+\Call{LeByteArray}{$n^{\texttt{type}}$} returns a vector sequence (see Section \ref{Vector}) of \texttt{u8} elements by encoding the input type's bytes in little-endian order. This function is used to convert a value of any type into a vector of bytes with a specific byte order, useful for data serialization (see Section \ref{EncodingSpec}).
+
+\subsection{Little Endian Byte Array Functions} \label{SupplementaryLeByteArrayFunctions}
+
+\subsubsection{ShiftLeByteArrayBitToMsb()} \label{ShiftLeByteArrayBitToMsb}
+
+\begin{itemize}
+    \item The Algorithm  takes a little-endian encoded byte array, $\texttt{vec[u8]}$, and shifts its bits to the most significant bit position indicated by its input $k$, where the maximum shift can be $k < 2^8$.
+    \item The Algorithm 's \textit{Test Cases} are given in \ref{Test:ShiftLeByteArrayBitToMsb}.
+\end{itemize}
+
+\begin{algorithm}
+\caption{ShiftLeByteArrayBitToMsb() \hfill $\bigO(n)$}
+\label{Alg:ShiftLeByteArrayBitToMsb}
+\begin{algorithmic}[1]
+\Function{ShiftLeByteArrayBitToMsb}{$n^{\texttt{vec[u8]}},k^{\texttt{u8}}$}
+        \State $\tilde{k}^{\texttt{u-size}} \gets$ \Call{NumElements}{$n$} % NumElements Used Since a vector's number elements can posses unknown length ranges during runtime
+        \If{$\tilde{k} > 0$}  
+            \If{$k>0$}  
+                \State $\tilde{u}^{\texttt{u8}} \gets \lceil \frac{k}{8} \rceil$
+                \Concurrent{2}
+                    \State $\tilde{i_b}^{\texttt{u8}} \gets k \mod 8$
+                    \State $\tilde{i_B}^{\texttt{u8}} \gets \lfloor \frac{k}{8} \rfloor$
+                \EndConcurrency
+                    \ForAll{$\texttt{u8}_i \in n$}
+                        \ForAll{$b_i \in \texttt{u8}_i(n)$}
+                            \State $b_{i_b}(\texttt{u8}_{i_B}(\tilde{p}^{\texttt{vec[u8]}})) \gets b_i(\texttt{u8}_i(n))$
+                            \State $b_i(\texttt{u8}_i(\tilde{p})) \gets 0^{\texttt{bool}}$
+                            \State $\tilde{i_b} = (\tilde{i_b} + 1) \mod 8$
+                            \If{$\tilde{i_b}=0$}
+                                \State $\tilde{i_B} = \tilde{i_B} + 1$
+                            \EndIf
+                        \EndFor
+                    \EndFor
+            \Else 
+                \State $\tilde{p}^{\texttt{vec[u8]}} \gets n$
+            \EndIf
+        \Else 
+            \State $\tilde{p}^{\texttt{vec[u8]}} \gets \emptyset$
+        \EndIf
+    
+        \Return $\tilde{p}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{ConcatByteArrays()} \label{ConcatByteArrays}
+
+\Call{ConcatByteArrays}{$a^{\texttt{vec[u8]}}, b^{\texttt{vec[u8]}}$} function takes two vector byte array sequences as inputs and concatenates them in order. This means the elements of the second vector are appended to the elements of the first vector, resulting in a new combined vector.
+
+
+\end{document}

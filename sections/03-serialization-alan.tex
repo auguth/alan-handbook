@@ -1,0 +1,741 @@
+% Copyright (C) 2024 Auguth Research Foundation.
+%
+% This file is part of ALAN Formal Specification Handbook.
+% A.L.A.N - Abstract Logical Assembly Network.
+%
+% License
+% --------
+% This work is licensed under the GNU Free Documentation License.
+% To view a copy of this license, visit https://www.gnu.org/licenses/fdl-1.3.html
+%
+% File Information
+% -----------------
+% - Title : ALAN - Handbook
+% - Author : Joby J Reuben
+% - Affiliation : Auguth Research Foundation
+% - Email : joby@auguth.org
+% - Created At : Bangalore, India
+% - Type : Latex-Subfile(.tex)
+% - Path : "alan-handbook(root)/sections/03-serialization-alan.tex"
+%
+% Contributors Message 
+% ---------------------
+% 
+%
+\documentclass[../alan-handbook.tex]{subfiles}
+\begin{document}
+
+\section{Serialization}
+
+\subsection{Encoding} 
+\label{EncodingSpec}
+
+Encoding is used to represent data in a serialized format, which ensures data integrity, security, and efficiency when sending over networking protocols or storing in databases for later retrieval.
+
+The Encoding Specification described in this document is a modified-derivative of SCALE-Encoding (Simple Concatenated Aggregate LittleEndian) by Parity Technologies used as the defacto encoding for Substrate-Framework to encode byte arrays and other data structures. SCALE provides a canonical encoding to produce consistent hash values across their implementation, including the State Database (see Section \ref{StateDatabase}).
+
+\subsubsection{Little Endian} 
+\label{LittleEndian}
+
+Little-endian is a byte order where the least significant byte (LSB) is stored at the lowest memory address, and subsequent bytes are stored at higher memory addresses.
+
+A non-negative integer $\mathbb{Z}$ is expressed as a sequence of bytes (see Section \ref{ByteArray}), where each byte $\mathbb{B}_i$ satisfies $0 \leq \mathbb{B}_i \leq 255$ i.e., \texttt{base-256}. In \textit{little-endian} format, $\mathbb{Z}$ is represented as:
+$$\mathbb{Z} = \{\mathbb{B}_0, \ldots, \mathbb{B}_n\}$$
+This can be interpreted as:
+$$\{\mathbb{B}_n, \ldots, \mathbb{B}_0\} \gets \Call{LittleEndian}{\{\mathbb{B}_0, \ldots, \mathbb{B}_n\}}$$
+
+\textit{Examples} of Little-Endian are provided in Section \ref{Eg:LittleEndian}.
+
+\subsubsection{Length Encoding} 
+\label{LengthEncoding}
+
+Length encoding of a non-negative number $n \in \mathbb{N} \to \mathbb{B}$ represented in a byte array is denoted as \Call{LengthEncode}{}. Length encoding is used to encode integer numbers of varying sizes. The encoding process of the non-negative number $n$ is divided into different cases based on its magnitude:
+
+\begin{itemize}
+    \item Case 1 (1 Byte): $0 \leq n < 2^6$ Representation: $b_1^0, b_0^0 = 0, 0$
+    \item Case 2 (2 Bytes): $2^6 \leq n < 2^{14}$ Representation: $b_1^0, b_0^0 = 0, 1$
+    \item Case 3 (4 Bytes): $2^{14} \leq n < 2^{30}$ Representation: $b_1^0, b_0^0 = 1, 0$
+    \item Case 4 ($m+1$ Bytes): $n \geq 2^{30}$ Representation: $b_1^0, b_0^0 = 1, 1$, and $b_7^0, \ldots, b_2^0 = m$, where $m$ denotes the length of the total bytes of the original non-negative integer before encoding.
+\end{itemize}
+
+\textit{Examples} of Length Encoding are provided in Section \ref{Eg:LengthEncoding}.
+
+\subsubsubsection{LengthEncode()} 
+\label{LengthEncode}
+
+\begin{itemize}
+    \item Algorithm \ref{Alg:LengthEncode} encodes a non-negative integer (unsigned integer $\texttt{u128,u64,u32}$) into a byte array format (\texttt{vec[u8]}). 
+    \item Implementations should include additional necessary variants for the remaining unsigned integer data types i.e., \texttt{u16,u8}
+    \begin{itemize}
+        \item \Call{LengthEncode}{$n^{\texttt{u16}}$} , where the case $n \geq 2^{30}$ can be omitted
+        \item \Call{LengthEncode}{$n^{\texttt{u8}}$} , where the cases $n \geq 2^{30}$, $2^{14} \leq n < 2^{30}$ can be omitted
+    \end{itemize}
+    \item Test cases for Algorithm \ref{Alg:LengthEncode} are provided in Section \ref{Test:LengthEncode}.
+\end{itemize}
+
+\begin{algorithm}
+\caption{LengthEncode() \hfill $\bigO()$}
+\label{Alg:LengthEncode}
+\begin{algorithmic}[1]
+\Function{LengthEncode}{$n^{\texttt{u128} \ \vee \ \texttt{u64} \ \vee \ \texttt{u32}}$}
+
+    \State $\tilde{n}^{\texttt{vec[u8]}} \gets $\Call{LeByteArray}{$n$} \Comment{\ref{LeByteArray}} 
+    \If{$2^0 \leq n < 2^6$}
+        \State $\tilde{p}^{\texttt{vec[u8]}} \gets $ \Call{ShiftLeByteArrayBitToMsb }{$\tilde{n},2$} \Comment{\ref{ShiftLeByteArrayBitToMsb}} 
+        \Concurrent{2}
+            \State $b_1(\texttt{u8}_0(\tilde{p})) \gets \texttt{false}$ \Comment{\ref{BitwiseRepresentation}}
+            \State $b_0(\texttt{u8}_0(\tilde{p})) \gets \texttt{false}$ \Comment{\ref{BitwiseRepresentation}}
+        \EndConcurrency
+    \ElsIf{$2^6 \leq n < 2^{14}$}
+        \State $\tilde{p}^{\texttt{vec[u8]}}  \gets $ \Call{ShiftLeByteArrayBitToMsb }{$\tilde{n},2$} \Comment{\ref{ShiftLeByteArrayBitToMsb}} 
+        \Concurrent{2}
+            \State $b_1(\texttt{u8}_0(\tilde{p})) \gets \texttt{false}$ \Comment{\ref{BitwiseRepresentation}}
+            \State $b_0(\texttt{u8}_0(\tilde{p})) \gets \texttt{true}$ \Comment{\ref{BitwiseRepresentation}}
+        \EndConcurrency
+    \ElsIf{$2^{14} \leq n < 2^{30}$}
+        \State $\tilde{p}^{\texttt{vec[u8]}} \gets $ \Call{ShiftLeByteArrayBitToMsb }{$\tilde{n},2$} \Comment{\ref{ShiftLeByteArrayBitToMsb}} 
+        \Concurrent{2}
+            \State $b_1(\texttt{u8}_0(\tilde{p})) \gets \texttt{true}$ \Comment{\ref{BitwiseRepresentation}}
+            \State $b_0(\texttt{u8}_0(\tilde{p})) \gets \texttt{false}$ \Comment{\ref{BitwiseRepresentation}}
+        \EndConcurrency
+    \ElsIf{$n \geq 2^{30}$}
+        \State $\tilde{q}^{\texttt{u-size}} \gets $ \Call{LenBytes}{$n$} \Comment{\ref{LenBytes}} 
+        \State $\tilde{k}^{\texttt{vec[u8]}} \gets$\Call{LeByteArray}{$\tilde{q}$} \Comment{\ref{LeByteArray}} 
+        \State $\tilde{y}^{\texttt{vec[u8]}} \gets $ \Call{ShiftLeByteArrayBitToMsb }{$\tilde{k},2$} \Comment{\ref{ShiftLeByteArrayBitToMsb}} 
+        \Concurrent{3}
+            \State $b_1(\texttt{u8}_0(\tilde{y})) \gets \texttt{true}$ \Comment{\ref{BitwiseRepresentation}}
+            \State $b_0(\texttt{u8}_0(\tilde{y})) \gets \texttt{true}$ \Comment{\ref{BitwiseRepresentation}}
+            \State $\tilde{y}^{\texttt{vec[u8]}} \gets \tilde{y}^{\texttt{vec[u8]}}  \setminus \texttt{u8}_1(\tilde{y})$ \Comment{\ref{SetNotations}}
+        \EndConcurrency
+        \State $\tilde{p}^{\texttt{vec[u8]}} \gets $ \Call{ConcatByteArrays }{$\tilde{y},\tilde{n}$} \Comment{\ref{ConcatByteArrays}} 
+    \EndIf
+
+    \Return $\tilde{p}$
+\EndFunction   
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsubsection{Varying Data Type} 
+\label{VaryingDataType}
+
+A Varying Data Type $\mathcal{T}$ is an ordered set of data types denoted by,
+$$\mathcal{T} = \{T_0, \ldots, T_n\}$$
+
+A value $A$ is represented as $A_{\text{val}}$, belonging to a pair $\{A_{\text{type}}, A_{\text{val}}\}$, where $A_{\text{type}} = i \in T_i(\mathcal{T})$, indicating that $A_{\text{val}}$ is of the individual data type $T_i$ within the ordered set of all data types $\mathcal{T}$. 
+
+The value $A_{\text{val}}$ of a certain type $T_i$ can have a zero value, but should not be empty, as for sequences with zero elements - its length ie., number of elements shall describe its empty value (see Section \ref{SequenceEncode}).
+
+The Encoding for a value $A=\{A_{\text{type}}, A_{\text{val}}\}$ of an ordered set of varying data types is defined as,
+$$\Call{Encode}{A} = \Call{LengthEncode}{i \in T_i(\mathcal{T})} \parallel \Call{Encode}{A_{\text{val}}}$$
+
+\textit{Examples} of Varying Data Type are given in Section \ref{Eg:VaryingDataType}
+
+\subsubsubsection{Index of Data Types} 
+\label{IndexOfDataTypesSection}
+
+List of Varying Data Type Indexes (see Figure \ref{IndexOfDataTypes}) including special data types (see Section \ref{SpecialDataTypes}) according to which \Call{FindDataTypeIndex}{} Function (see Algorithm \ref{Alg:FindDataTypeIndex}) is formulated.
+    
+\begin{figure}
+\label{IndexOfDataTypes}
+\caption*{Index of Data Types}
+\begin{equation*}
+    \mathcal{T} = \begin{cases} 
+    T_0 & \texttt{none} \ \ref{NoneType} \\ 
+    T_1 & \texttt{some} \ \ref{SomeType} \\
+    T_2 & \texttt{ok} \ \ref{ResultType} \\ 
+    T_3 & \texttt{err} \ \ref{ResultType} \\ 
+    T_4 & \texttt{bool} \ \ref{BooleanEncoding} \ \text{Boolean Type}\\
+    T_5 & \texttt{char} \ \ref{Character} \ \text{Character Type}\\
+    T_6 & \texttt{str} \ \ref{String} \ \text{String Type}\\
+    T_7 & \texttt{vec} \ \ref{Vector} \ \text{Sequence with varying length} \\
+    T_8 & \texttt{ary} \ \ref{Array} \ \text{Sequence with fixed length} \\
+    T_9 & \texttt{tup} \ \ref{Tuple} \ \text{Tuple} \\
+    T_{10} & \texttt{u8} \ \ref{Unsigned-Integer} \ \text{Unsigned-Integer Type}\\
+    T_{11} & \texttt{u16} \ \ref{Unsigned-Integer} \ \text{Unsigned-Integer Type} \\ 
+    T_{12} & \texttt{u32} \ \ref{Unsigned-Integer} \ \text{Unsigned-Integer Type} \\ 
+    T_{13} & \texttt{u64} \ \ref{Unsigned-Integer} \ \text{Unsigned-Integer Type} \\
+    T_{14} & \texttt{u128} \ \ref{Unsigned-Integer} \ \text{Unsigned-Integer Type}\\ 
+    T_{15} & \texttt{i8} \ \ref{Signed-Integer} \ \text{Signed-Integer Type}\\
+    T_{16} & \texttt{i16} \ \ref{Signed-Integer} \ \text{Signed-Integer Type}\\ 
+    T_{17} & \texttt{i32} \ \ref{Signed-Integer} \ \text{Signed-Integer Type}\\ 
+    T_{18} & \texttt{i64} \ \ref{Signed-Integer} \ \text{Signed-Integer Type}\\
+    T_{19} & \texttt{i128} \ \ref{Signed-Integer} \ \text{Signed-Integer Type} \\
+    T_{20} & \texttt{f32} \ \ref{Floating-Integer} \ \text{FloatingPoint-Integer Type} \\
+    T_{21} & \texttt{f64} \ \ref{Floating-Integer} \ \text{FloatingPoint-Integer Type} \\
+    T_{22} & \texttt{nib$^{\texttt{u8}}$} \ \ref{NibbleEncoding} \ \text{Nibble Type (SDT)}\\
+    T_{23} & \texttt{vec[nib]} \ \ref{NibbleEncoding} \ \text{Nibble Vector Sequence Type (SDT)} \\
+    T_{24} & \texttt{ary[nib]} \ \ref{NibbleEncoding} \ \text{Nibble Array Sequence Type (SDT)}
+    % Special Data Types here
+\end{cases}
+\end{equation*}
+\end{figure}
+
+\subsubsubsection{FindDataTypeIndex()} 
+\label{FindDataTypeIndex}
+
+\begin{itemize}
+    \item Algorithm \ref{Alg:FindDataTypeIndex} takes any data type as input, fetches the index of a given varying data type (see Section \ref{VaryingDataType}), and returns a variable that contains the index $n$ of its data type as a unsigned 8-bit integer i.e., \texttt{u8}. 
+    \item For each data type the function's variants must be implemented individually and the index must be hardcoded.
+    \item The return type is kept \texttt{u8} since the current highest index of the index of data types (see Section \ref{IndexOfDataTypesSection}) is $n<256$. In case if the index number overflows $n\geq256$, the return variable's size should be attended to and updated to suitable length. 
+    \item Test cases for Algorithm \ref{Alg:FindDataTypeIndex} are provided in Section \ref{Test:FindDataTypeIndex}.
+\end{itemize}
+
+\begin{algorithm}
+\caption{FindDataTypeIndex() \hfill $\bigO()$}
+\label{Alg:FindDataTypeIndex}
+\begin{algorithmic}[1]
+\Function{FindDataTypeIndex}{$n^{\texttt{type}}$}
+
+    \Return $\tilde{k}^{\texttt{u8}} \gets \text{Index from } \ref{IndexOfDataTypesSection}$ 
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Option Type} 
+\label{OptionType}
+
+The Option type is a varying data type with indices $0$, and $1$, i.e., $\{T_0, T_1\}(\mathcal{T})$ (see Section \ref{IndexOfDataTypesSection}). Any individual data type can be an Option type which is typically used when denoting that the data type's value can be $\texttt{present} \equiv T_1(\mathcal{T})$ or $\texttt{absent} \equiv T_0(\mathcal{T})$. It has two states: 
+\begin{enumerate}
+    \item $\texttt{None} \equiv \texttt{absent}$: indicating the absence of a value of the data type
+    \item $\texttt{Some} \equiv \texttt{present}$: indicating the presence of a value of the data type
+\end{enumerate}
+
+\subsubsubsection{None Type} 
+\label{NoneType}
+
+For $\texttt{None}$ type, the encoding scheme is defined as,
+$$\Call{Encode}{\texttt{None},\texttt{value}} = 0_{\mathbb{B}_1} = 00000000 $$
+
+where, the none type shall be the first index of the Varying Data Type $\texttt{None} = T_0(\mathcal{T})$ (see Section \ref{IndexOfDataTypesSection}). Hence,
+$$
+\begin{matrix}
+    \Call{Encode}{A} = \{\Call{LengthEncode}{0 \in T_0(\mathcal{T})} \parallel \emptyset\}
+\end{matrix}
+$$
+where, $\emptyset$ is defined as empty set (see Section \ref{SetNotations})
+
+\subsubsubsection{Some Type} 
+\label{SomeType}
+
+For $\texttt{Some}$ type, the encoding scheme as is defined as,
+$$\Call{Encode}{\texttt{Some},\texttt{value}}$$
+
+where, the \texttt{some} type shall be the index $i=1$ such that, $\texttt{Some} = T_1(\mathcal{T})$ of the Varying Data Type (see Section \ref{IndexOfDataTypesSection}). 
+
+$$
+\begin{matrix}
+    \Call{Encode}{A} = \{\Call{LengthEncode}{1 \in T_{1}(\mathcal{T})} \\
+    \parallel \Call{Encode}{A_{\texttt{type}},A_{\texttt{val}}}\}
+\end{matrix}
+$$
+
+\textit{Examples} of Some Type are provided in Section \ref{Eg:SomeType}
+
+\subsubsection{Result Type} 
+\label{ResultType}
+
+The Result type is a varying data type with indices $2$, and $3$, i.e., $\{T_2, T_3\}(\mathcal{T})$ (see Section \ref{IndexOfDataTypesSection}), often used to represent the outcome of an operation or function that can either succeed ($\texttt{Ok} \equiv T_2(\mathcal{T})$) or fail ($\texttt{Err} \equiv T_3(\mathcal{T})$). It has two states:
+
+\begin{enumerate}
+    \item $\texttt{1} \equiv \texttt{Ok}$: indicating success
+    \item $\texttt{0} \equiv \texttt{Err}$: indicating an error or failure
+\end{enumerate}
+
+Both types can either contain additional data or be defined as empty types.
+
+Hence, for a function or operation to indicate success ($\texttt{1}$) or failure ($\texttt{0}$):
+$$
+f(x) = \begin{cases} 
+    \Call{Encode}{2 \in T_2(\mathcal{T}), A_{\text{type}}, A_{\text{value}}} & \text{if} \ \texttt{Ok} \\ 
+    \Call{Encode}{3 \in T_3(\mathcal{T}), A_{\text{type}}, A_{\text{value}}} & \text{if} \ \texttt{Err}
+\end{cases}
+$$
+
+where,
+$$
+\begin{matrix}
+    \Call{Encode}{ \texttt{Result},A_{\text{type}},A_{\text{value}}} = \\
+    \Call{LengthEncode}{3 \geq i \geq 2 \in T_i(\mathcal{T})} \parallel \\
+    \Call{Encode}{A_{\text{type}},A_{\text{value}}}
+\end{matrix}
+$$
+
+\textit{Examples} of Result Type are provided in Section \ref{Eg:ResultType}.
+
+\subsubsection{Empty Type} 
+\label{EmptyType}
+
+The encoding scheme for an empty type is defined as a byte array of zero length (empty byte array), depicted as $\emptyset$, where $\emptyset$ represents an empty value or absence of data (see Section \ref{SetNotations})
+
+$$\Call{Encode}{\emptyset} = \text{empty byte array}$$
+
+\subsubsection{Boolean Encoding} 
+\label{BooleanEncoding}
+
+For a boolean value $b$ defined as,
+
+$$b \to \begin{cases} 
+    0 & \text{if } b = \texttt{false} \\ 
+    1 & \text{if } b = \texttt{true} 
+\end{cases}$$
+
+A Boolean value is encoded as a byte $\mathbb{B}$ defined as,
+
+$$
+\begin{matrix}
+    $$\Call{BoolEncode}{n} = \Call{LengthEncode}{4 \in T_4(\mathcal{T})} \parallel \\
+    \{\{00000000 \ \text{if }\texttt{bool}=\texttt{false}\}\vee\{00000001 \ \text{if }\texttt{bool}=\texttt{true}\}\}$$
+\end{matrix}
+$$
+
+Hence, the boolean value $\texttt{False}$ is encoded as a single byte (8 bits) with value $00000000_0$, and the boolean value $\texttt{True}$ is encoded as a byte with value 1, represented by $00000001_0$.
+
+\subsubsubsection{BoolEncode} \label{BoolEncode}
+
+\begin{itemize}
+    \item Algorithm \ref{Alg:BoolEncode} encodes a bool value, and returns a blob of encoded byte array i.e., \texttt{vec[u8]}.
+    \item Test cases for Algorithm \ref{Alg:BoolEncode} are provided in Section \ref{Test:BoolEncode}.
+\end{itemize}
+
+\begin{algorithm}
+\caption{BoolEncode() \hfill $\bigO()$}
+\label{Alg:BoolEncode}
+\begin{algorithmic}[1]
+\Function{BoolEncode}{$n^{\texttt{bool}}$}
+    \If{$n = \texttt{true}$}
+        \State $\texttt{u8}_0(\tilde{v}^{\texttt{vec[u8]}}) \gets 1$
+    \Else 
+        \State $\texttt{u8}_0(\tilde{v}^{\texttt{vec[u8]}}) \gets 0$
+    \EndIf 
+
+    \Return $\tilde{v}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Character Encoding} 
+\label{CharacterEncoding}
+
+A character is a UTF-8 encoded value, defined as:
+$$\texttt{char}(k) = \Call{UTF-8}{k}$$
+
+Since a character is encoded to byte array format, and each character's length is self-explanatory, it can be treated as fixed-length integers (see Section \ref{FixedLengthEncoding}). Therefore, it is encoded in little-endian format (see Section \ref{LittleEndian}).
+
+The Character type is a varying data type with index $5$, i.e., $T_5(\mathcal{T})$ (see Section \ref{IndexOfDataTypesSection}):
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{char}} = \Call{LengthEncode}{5 \in T_5(\mathcal{T})} \\
+    \parallel \Call{LittleEndian}{\text{UTF-8}(\texttt{char})}
+\end{matrix}
+$$
+
+\textit{Examples} of Character Type are provided in Section \ref{Eg:CharacterEncoding}.
+
+\subsubsection{Fixed Length Encoding} 
+\label{FixedLengthEncoding}
+
+The encoding scheme for fixed length integers, and types such as $\{\texttt{u8, u16, u32, u64, u128}\}$, and $\{\texttt{i8, i16, i32, i64, i128, f32, f64, char}\}$ is straightforward. These types have a fixed size where the decoder knows the length, and the encoding scheme is equivalent to little-endian encoding (see Section \ref{LittleEndian}) of those values.
+
+\subsubsection{Sequence Encoding} 
+\label{SequenceEncoding}
+
+A \textit{Sequence} $S$ is defined as a collection of elements $A_i$ of the same type, where sequences denote vectors (see Section \ref{Vector}), and arrays (see Section \ref{Array}):
+$$S = \{A_0, \ldots, A_i, \ldots, A_n\}$$
+
+The encoding process of a sequence involves encoding the length of the sequence, denoted as \Call{LengthEncode}{$\lvert S \rvert$}, which is the number of elements in the set. This is followed by the variable data type encoding of the first element of the sequence, and then the value encoding (encoding without data type index) of individual elements $\Call{ValueEncode}{A_i}$ (see Section \ref{ValueEncode}).
+
+The Sequence type is a varying data type with indices $7$, and $8$, i.e., $\{T_7, T_8\}(\mathcal{T})$ (see Section \ref{IndexOfDataTypesSection}):
+$$
+\begin{matrix}
+    \Call{SequenceEncode}{S} = \Call{LengthEncode}{8 \geq (i \in T_i(\mathcal{T})) \geq 7} \\
+    \parallel \Call{LengthEncode}{\lvert S \rvert} \parallel \\
+    \Call{LengthEncode}{i \in T_i(\mathcal{T})} \parallel \Call{ValueEncode}{A_0} \ldots \\ 
+    \ldots \parallel \Call{ValueEncode}{A_n}
+\end{matrix}
+$$
+
+A special case for Sequences that includes either of Option Type (see Section \ref{OptionType}) or Result Type (see Section \ref{ResultType}) data types of index $3 \geq i \geq 0$ (see Section \ref{IndexOfDataTypesSection}) is defined. Instead of $\Call{ValueEncode}{A_i}$, the elements are individually encoded:
+$$
+\begin{matrix}
+    \Call{SequenceEncode}{S} = \Call{LengthEncode}{8 \geq (i \in T_i(\mathcal{T})) \geq 7} \\
+    \parallel \Call{LengthEncode}{\lvert S \rvert} \parallel \\
+    \Call{Encode}{A_0} \ldots \parallel \Call{Encode}{A_n}
+\end{matrix}
+$$
+
+\textit{Examples} of Sequence Type are provided in Section \ref{Eg:SequenceEncoding}.
+
+\subsubsubsection{SequenceEncode()} 
+\label{SequenceEncode}
+
+\begin{itemize}
+    \item Algorithm \ref{Alg:SequenceEncode} encodes a sequence i.e., data types $\texttt{ary}$ (see Section \ref{Array}) or $\texttt{vec}$ (see Section \ref{Vector}), and returns a blob of encoded byte array i.e., \texttt{vec[u8]}. 
+    \item The return type of function call inside the algorithm : \Call{FindDataTypeIndex}{} (see Section \ref{FindDataTypeIndex}) is kept \texttt{u8} since the current highest index of the index of data types (see Section \ref{IndexOfDataTypesSection}) is $n<256$. In case if the index number overflows $n\geq256$, the return variable's size should be attended to and updated to suitable length. 
+    \item Test cases for Algorithm \ref{Alg:SequenceEncode} are provided in Section \ref{Test:SequenceEncode}.
+\end{itemize}
+
+\begin{algorithm}
+\caption{SequenceEncode() \hfill $\bigO()$  }
+\label{Alg:SequenceEncode}
+\begin{algorithmic}[1]
+\Function{SequenceEncode}{$S^{\texttt{ary} \ \vee \ \texttt{vec}}$}
+    \State $\tilde{i}^{\texttt{u-size}} \gets$ \Call{NumElements}{$S$} \Comment{\ref{NumElements}} 
+    \If{$\tilde{i} > 0$}
+        \State $\tilde{x}^{\texttt{u8}} \gets$ \Call{FindDataTypeIndex \ref{Alg:FindDataTypeIndex}}{$e_0(S)$} \Comment{\ref{FindDataTypeIndex}}
+        \If{$3 \geq \tilde{x} \geq 0$}
+            \State $\tilde{n}^{\texttt{vec[u8]}} \gets$\Call{IterateEncodeForSequence \ref{Alg:IterateEncodeForSequence}}{$S$} \Comment{\ref{IterateEncodeForSequence}}
+        \Else 
+            \Concurrent{2}
+                \State $\tilde{y}^{\texttt{vec[u8]}} \gets$ \Call{LeByteArray}{$\tilde{x}$} \Comment{\ref{LeByteArray}}
+                \State $\tilde{a}^{\texttt{vec[u8]}} \gets$\Call{IterateValueEncodeForSequence \ref{Alg:IterateValueEncodeForSequence}}{$S,\tilde{x}$} \Comment{\ref{IterateValueEncodeForSequence}}
+            \EndConcurrency
+            \State $\tilde{n}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays }{$\tilde{y},\tilde{a}$} \Comment{\ref{ConcatByteArrays}}
+        \EndIf
+    \Else 
+        \State $\tilde{n}^{\texttt{vec[u8:0]}} \gets \emptyset$
+    \EndIf
+    \State $\tilde{h}^{\texttt{vec[u8]}} \gets$ \Call{LengthEncode \ref{Alg:LengthEncode}}{$\tilde{i}$} \Comment{\ref{LengthEncode}} 
+    \State $\tilde{k}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays }{$\tilde{h},\tilde{n}$} \Comment{\ref{ConcatByteArrays}} 
+
+    \Return $\tilde{k}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsubsection{IterateEncodeForSequence} \label{IterateEncodeForSequence}
+
+\begin{itemize}
+    \item Algorithm \ref{Alg:IterateEncodeForSequence} encodes a sequence or a tuple i.e., data types $\texttt{ary}$ (see Section \ref{Array}) or $\texttt{vec}$ (see Section \ref{Vector}) or $\texttt{tup}$ (see Section \ref{Tuple}), by iterating over its elements and returns a blob of encoded byte array i.e., \texttt{vec[u8]}. 
+    \item Algorithm \ref{Alg:IterateEncodeForSequence} shall include its index of data types (see Section \ref{IndexOfDataTypesSection}) in the encoded byte array.
+    \item Test cases for Algorithm \ref{Alg:IterateEncodeForSequence} are not required since Test Cases of \Call{SequenceEncode}{} (see Section \ref{Test:SequenceEncode}) and \Call{TupleEncode}{} (see Section \ref{Test:TupleEncode}) ensures the correctness of the \Call{IterateEncodeForSequence}{} Algorithm/Function. 
+\end{itemize}
+
+\begin{algorithm}
+\caption{IterateEncodeForSequence() \hfill $\bigO()$ }
+\label{Alg:IterateEncodeForSequence}
+\begin{algorithmic}
+\Function{IterateEncodeForSequence}{$S^{\texttt{vec} \vee \texttt{ary} \vee \texttt{tup}}$}
+    \ForAll{$e_i \in S$} \Comment{\ref{SetNotations}}
+        \If{$\tilde{n}^{\texttt{vec[u8]}} = \emptyset$}
+            \State $\tilde{n}^{\texttt{vec[u8]}} \gets$ \Call{Encode \ref{Alg:Encode}}{$e_i$} \Comment{\ref{Encode}}
+        \Else 
+            \State $\tilde{u}^{\texttt{vec[u8]}} \gets$ \Call{Encode \ref{Alg:Encode}}{$e_i$} \Comment{\ref{Encode}}
+            \State $\tilde{n}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays }{$\tilde{n},\tilde{u}$} \Comment{\ref{ConcatByteArrays}} 
+        \EndIf
+    \EndFor
+
+    \Return $\tilde{n}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsubsection{IterateValueEncodeForSequence} \label{IterateValueEncodeForSequence}
+
+\begin{itemize}
+    \item Algorithm \ref{Alg:IterateValueEncodeForSequence} encodes a sequence i.e., data types $\texttt{ary}$ (see Section \ref{Array}) or $\texttt{vec}$ (see Section \ref{Vector}), by iterating over its elements and returns a blob of encoded byte array i.e., \texttt{vec[u8]}. 
+    \item Algorithm \ref{Alg:IterateValueEncodeForSequence} will not be including the elements index of data types (see Section \ref{IndexOfDataTypesSection}) in the encoded byte array.
+    \item Algorithm \ref{Alg:IterateValueEncodeForSequence} should be strictly avoided for input of sequences $S$ holding sequences of Option (see Section \ref{OptionType}) or Result data types (see Section \ref{ResultType}) of data type index $3 \geq i \geq 0$ (see Section \ref{IndexOfDataTypesSection})
+    \item Test cases for Algorithm \ref{Alg:IterateValueEncodeForSequence} are not required since Test Cases of \Call{SequenceEncode}{} (see Section \ref{Test:SequenceEncode}) ensures the correctness of the \Call{IterateValueEncodeForSequence}{} Algorithm/Function. 
+\end{itemize}
+
+\begin{algorithm}
+\caption{IterateValueEncodeForSequence() \hfill $\bigO()$ }
+\label{Alg:IterateValueEncodeForSequence}
+\begin{algorithmic}
+\Function{IterateValueEncodeForSequence}{$S^{\texttt{vec} \ \vee \ \texttt{ary}},k^{\texttt{u8}}$}
+    \ForAll{$e_i \in S$} \Comment{\ref{SetNotations}}
+        \If{$\tilde{n}^{\texttt{vec[u8]}} = \emptyset$}
+            \State $\tilde{n}^{\texttt{vec[u8]}} \gets$ \Call{ValueEncode \ref{Alg:ValueEncode}}{$k, e_i$} \Comment{\ref{ValueEncode}}
+        \Else 
+            \State $\tilde{u}^{\texttt{vec[u8]}} \gets$ \Call{ValueEncode \ref{Alg:ValueEncode}}{$k, e_i$} \Comment{\ref{ValueEncode}}
+            \State $\tilde{n}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays }{$\tilde{n},\tilde{u}$} \Comment{\ref{ConcatByteArrays}}
+        \EndIf
+    \EndFor
+
+    \Return $\tilde{n}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Tuple Encoding} 
+\label{TupleEncoding}
+
+A \textit{Tuple}, $T$, is defined as a sequence variant where each $A_i$ represents individual data types:
+$$T = \{A_0, \ldots, A_i, \ldots, A_n\}$$
+
+The encoding process of a tuple involves encoding the length of the tuple, denoted as \Call{LengthEncode}{$\lvert T \rvert$} (see Algorithm \ref{Alg:LengthEncode}), which is the number of elements in the tuple. This is followed by concatenating the individually encoded elements $A_i$ in the sequence.
+
+The Tuple type is a varying data type with index $9$, i.e., $T_9(\mathcal{T})$ (see Section \ref{IndexOfDataTypesSection}):
+$$
+\begin{matrix}
+    \Call{TupleEncode}{T} = \Call{LengthEncode}{9 \in T_9(\mathcal{T})} \parallel \\
+    \Call{LengthEncode}{\lvert T \rvert} \parallel \Call{Encode}{A_0} \parallel \ldots \parallel \Call{Encode}{A_n}
+\end{matrix}
+$$
+
+\textit{Examples} of Tuple Type are provided in Section \ref{Eg:TupleEncoding}.
+
+\subsubsubsection{TupleEncode()} 
+\label{TupleEncode}
+
+\begin{itemize}
+    \item Algorithm \ref{Alg:TupleEncode} encodes a tuple i.e., \texttt{tup} (see Section \ref{Tuple}), and returns a blob of encoded byte array i.e., \texttt{vec[u8]}.
+    \item Test cases for Algorithm \ref{Alg:TupleEncode} are provided in Section \ref{Test:TupleEncode}.
+\end{itemize}
+
+\begin{algorithm}
+\caption{TupleEncode() \hfill $\bigO()$  }
+\label{Alg:TupleEncode}
+\begin{algorithmic}[1]
+\Function{TupleEncode}{$S^{\texttt{tup}}$}
+    \State $\tilde{i}^{\texttt{u-size}} \gets$ \Call{NumElements}{$S$} \Comment{\ref{NumElements}}
+    \If{$\tilde{i} > 0$}
+        \State $\tilde{a}^{\texttt{vec[u8]}} \gets$\Call{IterateEncodeForSequence \ref{Alg:IterateEncodeForSequence}}{$S$} \Comment{\ref{IterateEncodeForSequence}}
+    \Else 
+        \State $\tilde{a}^{\texttt{vec[u8]}} \gets \emptyset$
+    \EndIf
+    \State $\tilde{h}^{\texttt{vec[u8]}} \gets$ \Call{LengthEncode \ref{Alg:LengthEncode}}{$\tilde{i}$} \Comment{\ref{LengthEncode}}
+    \State $\tilde{k}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays }{$\tilde{h},\tilde{a}$} \Comment{\ref{ConcatByteArrays}}
+
+    \Return $\tilde{k}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{String Encoding} 
+\label{StringEncoding}
+
+A String is a collection of bytes consisting of UTF-8 encoded sequences (see Section \ref{UTF-8}). Since characters in UTF-8 encoding can vary in length but are self-describing, the string is represented as a byte array (\texttt{vec[u8]}). The encoding of a string type includes the length encoding (see Section \ref{LengthEncoding}) of the number of elements $\mid \texttt{str} \mid$ i.e., individual UTF-8 elements, followed by converting the string's byte array to little-endian format.
+
+The String type is a varying data type with index $6$, i.e., $T_6(\mathcal{T})$ (see Section \ref{IndexOfDataTypesSection}):
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{str}} = \Call{LengthEncode}{6 \in T_6(\mathcal{T})} \\
+    \parallel \Call{LengthEncode}{\mid \texttt{str} \mid} \parallel \Call{LittleEndian}{\texttt{str}}
+\end{matrix}
+$$
+
+\textit{Examples} of String Type are provided in Section \ref{Eg:StringEncoding}.
+
+\subsubsubsection{StringEncode} \label{StringEncode}
+
+\begin{itemize}
+    \item Algorithm \ref{Alg:StringEncode} encodes a string sequence i.e., $\texttt{str}$ (see Section \ref{String}), and returns a blob of encoded byte array i.e., \texttt{vec[u8]}.  
+    \item Test cases for Algorithm \ref{Alg:StringEncode} are provided in Section \ref{Test:StringEncode}.
+\end{itemize}
+
+\begin{algorithm}
+\caption{StringEncode() \hfill $\bigO()$}
+\label{Alg:StringEncode}
+\begin{algorithmic}
+\Function{StringEncode}{$S^{\texttt{str}}$}
+    \State $\tilde{i}^{\texttt{u-size}} \gets$ \Call{NumElements}{$S$} \Comment{\ref{NumElements}} % T = O(1)
+    \If{$\tilde{i} > 0$}
+        \State $\tilde{k}^{\texttt{vec[u8]}} \gets$ \Call{LeByteArray}{$S$} \Comment{\ref{LeByteArray}}
+    \Else 
+        \State $\tilde{k}^{\texttt{vec[u8]}} \gets \emptyset$
+    \EndIf 
+    \State $\tilde{h}^{\texttt{vec[u8]}} \gets$ \Call{LengthEncode \ref{Alg:LengthEncode}}{$\tilde{i}$} \Comment{\ref{LengthEncode}} 
+    \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays }{$\tilde{h},\tilde{k}$} \Comment{\ref{ConcatByteArrays}}
+
+    \Return $\tilde{v}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Special Data Types} 
+\label{SpecialDataTypes}
+
+Special Data Types provide encoding specifications for new higher-level data types or an alias, inheriting the attributes of fundamental data types $\{T_0,\ldots,T21\}(\mathcal{T})$ (see Section \ref{IndexOfDataTypesSection}). These special data types must be:
+
+\begin{enumerate}
+    \item Listed in the varying data type index (see Section \ref{IndexOfDataTypesSection}) structure for ALAN.
+    \item Incorporated as a variant of \Call{FindDataTypeIndex}{} Algorithm/Function (see Algorithm \ref{Alg:FindDataTypeIndex}).
+        \begin{itemize}
+            \item In case the special data type inherits one of these fundamental data types $\{\texttt{vec}, \texttt{ary}, \texttt{tuple}\}$ attributes, the condition of index ensuring in Algorithm \ref{Alg:FindDataTypeIndex} should be included within its inherited data type's variant.
+        \end{itemize}
+    \item Covered in the test cases of \Call{FindDataTypeIndex}{} Algorithm/Function (see Section \ref{Test:FindDataTypeIndex}).
+    \item Incorporated into the \Call{ValueEncode}{} Algorithm/Function (see Algorithm \ref{Alg:ValueEncode}).
+        \begin{itemize}
+            \item Condition, and instructions included in the highest index of data type \ref{IndexOfDataTypesSection} order, can be ignored if the Space or Time complexity of the \Call{ValueEncode}{} Algorithm/Function (see Algorithm \ref{Alg:ValueEncode}) can be avoided being incremented.
+        \end{itemize}
+    \item Addressed in the test cases of \Call{ValueEncode}{} Algorithm/Function (see Section \ref{Test:ValueEncode}).
+    \item Optional to Include in the \Call{SequenceEncode}{} Algorithm/Function (see Algorithm \ref{Alg:SequenceEncode}), if required.
+    \item Optional to be covered in the test cases of \Call{SequenceEncode}{} Algorithm/Function (see Section \ref{Test:SequenceEncode}), if Algorithm \ref{Alg:SequenceEncode} is altered.
+\end{enumerate}
+
+\subsubsubsection{Nibble Encoding} 
+\label{NibbleEncoding}
+
+Some data structures, such as state-trie keys (see Section \ref{NodeKeys}) in a Radix-trie, organize their structure based on each nibble (half-byte, i.e., 4 bits) as key for the key-value database \ref{YetToRefer}. A nibble $\texttt{nib}$ data type can be constructed from an existing fundamental data type. If in an implementation-specific language, a $\texttt{u4}$ type may be used for storing half-byte values, this section on nibble encoding can be omitted as it can be viewed as a fixed-length type (see Section \ref{FixedLengthEncoding}), and special data type requirements can be constructed accordingly. If the $\texttt{u4}$ type is not present, then the following specifications shall be utilized to the following special data types.
+
+Two new varying data types are defined for nibbles:
+\begin{itemize}
+    \item $\texttt{nib}^{\texttt{u8}}$, listed in the varying data type index (see Section \ref{IndexOfDataTypesSection}) with index $T_{22}(\mathcal{T})$ (see Section \ref{VaryingDataType}), wraps a nibble of value $\texttt{u8}<16$ into a $\texttt{u8}$ value by restricting the most significant 4 bits.
+    \item $\texttt{vec[nib]}$, listed in the varying data type index with index $T_{23}(\mathcal{T})$, defines a vector (see Section \ref{Vector}) of nibbles i.e., $\texttt{nib}^{\texttt{u8}}$ of variable length as a new data type.
+    \item $\texttt{ary[nib:N]}$, listed in the varying data type index with index $T_{24}(\mathcal{T})$, defines an array (see Section \ref{Array}) of nibbles i.e., $\texttt{nib}^{\texttt{u8}}$ of fixed length $\texttt{N}$ as a new data type.
+\end{itemize}
+
+The nibble encoding function is defined in Algorithm \ref{Alg:ValueEncode} ($k=22$) to encode a $\texttt{nib}^{\texttt{u8}}$ value, where $\texttt{u8}<16$, and the encoded blob will be the little-endian encoding of its $\texttt{u8}$ value (exact to its inherited \texttt{u8} type i.e., a fixed length type - see Section \ref{FixedLengthEncoding}):
+$$\Call{Encode}{\texttt{nib}^{\texttt{u8}}} = \Call{LittleEndian}{\texttt{nib}^{\texttt{u8}}}$$
+
+\textit{Example} for a Nibble Encoding are given in \ref{Eg:NibbleEncoding}.
+
+The function for encoding a sequence of nibbles is defined in Algorithm \ref{Alg:NibbleSequenceEncode} to encode a vector (see Section \ref{Vector}) or an array (see Section \ref{Array}) of $\texttt{nib}^{\texttt{u8}}$ into a canonical byte array. The encoding process of a sequence of nibbles includes the length of the post-encoding number of nibbles followed by the encoding specification which depends on whether the number of nibbles in the sequence is even ($n \mod 2 = 0$) or odd ($n \mod 2 = 1$).
+
+In a sequence of \texttt{nib} i.e., \texttt{vec[nib]} or \texttt{ary[nib:N]},
+
+\begin{itemize}
+    \item If the number of elements in the sequence $n = \lvert S^{\texttt{ary[nib:N]}} \rvert$ is even ($n \mod 2 = 0$), then each pair of consecutive nibbles is combined into a byte, where the first nibble is multiplied by 16, and added to the second nibble. 
+    \item If the number of elements in the nibble sequence is odd ($n \mod 2 = 1$), then the first nibble remains as is, and the subsequent pairs of nibbles are combined into bytes as in the even case.
+        $$
+        k^{\texttt{bool}} \gets \mid S \mid \mod 2
+        $$
+        $$
+        P \gets 
+        \begin{cases}
+            \text{if} \ $k = 0$ &  \begin{matrix}(16\cdot \texttt{nib}^{\texttt{u8}}_0 + \texttt{nib}^{\texttt{u8}}_1), \parallel \\ \ldots \parallel(16 \cdot \texttt{nib}^{\texttt{u8}}_{n-1}+\texttt{nib}^{\texttt{u8}}_{n})\end{matrix} \\
+            \text{if} \ $k = 1$ & \begin{matrix}\texttt{nib}^{\texttt{u8}}_0 \parallel (16\cdot \texttt{nib}^{\texttt{u8}}_1 + \texttt{nib}^{\texttt{u8}}_2) \parallel \\ \ldots \parallel(16 \cdot \texttt{nib}^{\texttt{u8}}_{n-1}+\texttt{nib}^{\texttt{u8}}_{n})\end{matrix}
+        \end{cases}
+        $$ 
+    \item The encoding of a nibble sequence would be defined as 
+        $$
+        \begin{matrix}
+            \Call{NibbleEncode}{S^{\texttt{ary[nib:N]}}}= \Call{LengthEncode}{\mid P \mid} \parallel \\
+            \Call{BoolEncode}{k} \parallel P
+        \end{matrix}
+        $$ 
+\end{itemize}
+
+\textit{Examples} for Nibble Sequence Encoding are given in \ref{Eg:NibbleSequenceEncoding}.
+
+\subsubsubsection{NibbleSequenceEncode()} 
+\label{NibbleSequenceEncode}
+
+\begin{itemize}
+    \item The Algorithm \ref{Alg:NibbleSequenceEncode} encodes a sequence of nibbles i.e., \texttt{vec[nib]} or \texttt{ary[nib]} into a shortened encoded byte array.
+    \item The Algorithm \ref{Alg:NibbleSequenceEncode}'s \textit{Test Cases} are given in \ref{Test:NibbleSequenceEncode}.
+\end{itemize}
+
+\begin{algorithm}
+\caption{NibbleSequenceEncode() \hfill $\bigO()$  }
+\label{Alg:NibbleSequenceEncode}
+\begin{algorithmic}[1]
+\Function{NibbleSequenceEncode}{$S^{\texttt{vec} \ \vee \ \texttt{ary}}$}
+    \State $\tilde{m}^{\texttt{u-size}} \gets$ \Call{NumElements}{$S$} \Comment{\ref{NumElements}}
+    \If{$\tilde{m} > 0$}
+        \Concurrent{3}
+            \State $\tilde{i}^{\texttt{type}(\tilde{m})} \gets 0$
+            \State $\tilde{k}^{\texttt{type}(\tilde{m})} \gets 0$
+            \State $\tilde{j}^{\texttt{bool}} \gets \tilde{m} \mod 2$
+        \EndConcurrency
+        \If{$\tilde{j} = \texttt{true}$}
+            \While{$\tilde{m} > \tilde{i} \geq 0$}
+                \If{$\tilde{i} \in e_{\tilde{i}}(S) = 0$}
+                    \State $\texttt{u8}_{\tilde{k}}(\tilde{p}^{\texttt{vec[u8]}}) \gets e_{\tilde{i}}$
+                \Else 
+                    \State $\texttt{u8}_{\tilde{k}}(\tilde{p}^{\texttt{vec[u8]}}) \gets ((16 \times e_{\tilde{i}-1}) + e_{\tilde{i}}) $
+                \EndIf
+                \Concurrent{2} 
+                    \State $\tilde{i} \gets \tilde{i} + 2$
+                    \State $\tilde{k} \gets \tilde{k} + 1$
+                \EndConcurrency
+            \EndWhile
+        \Else
+            \While{$\tilde{m} > \tilde{i} \geq 0$} 
+                \State $\texttt{u8}_{\tilde{k}}(\tilde{p}^{\texttt{vec[u8]}}) \gets ((16 \times e_{\tilde{i}}) + e_{\tilde{i}+1}) $
+                \Concurrent{2}
+                    \State $\tilde{i} \gets \tilde{i} + 2$
+                    \State $\tilde{k} \gets \tilde{k} + 1$
+                \EndConcurrency
+            \EndWhile
+        \EndIf
+        \State $\tilde{t}^{\texttt{vec[u8]}} \gets$ \Call{BoolEncode \ref{Alg:BoolEncode}}{$\tilde{j}$} \Comment{\ref{BoolEncode}}
+        \State $\tilde{p}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays }{$\tilde{t},\tilde{p}$} \Comment{\ref{ConcatByteArrays}}
+    \Else 
+        \State $\tilde{p}^{\texttt{vec[u8]}} \gets \emptyset$
+    \EndIf 
+    \State $\tilde{e}^{\texttt{vec[u8]}} \gets$ \Call{LengthEncode \ref{Alg:LengthEncode}}{$\tilde{k}$} \Comment{\ref{LengthEncode}}
+    \State $\tilde{q}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays }{$\tilde{e},\tilde{p}$} \Comment{\ref{ConcatByteArrays}}    
+
+    \Return $\tilde{q}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+% Contributors Info : New Special Data Types are required to be written above 
+
+\subsubsection{Encode Entrypoint}
+
+\subsubsubsection{Encode()} 
+\label{Encode}
+
+\begin{itemize}
+    \item The Algorithm \ref{Alg:Encode} receives a data type's value from which it determines the index of the data type from $\mathcal{T}$ \ref{IndexOfDataTypesSection}, encodes the value, concatenates byte arrays, and returns the encoded blob of a bytes. 
+    \item The return type of function call inside the algorithm : \Call{FindDataTypeIndex}{} (see Section \ref{FindDataTypeIndex}) is kept \texttt{u8} since the current highest index of the index of data types (see Section \ref{IndexOfDataTypesSection}) is $n<256$.
+    \item Test cases for Algorithm \ref{Alg:Encode} are not required since it only include function calls to other test case ensured functions. Hence Algorithm \ref{Alg:Encode}'s correctness is ensured via its nested functions test cases.
+\end{itemize}
+
+\begin{algorithm}
+\caption{Encode() \hfill $\bigO()$  }
+\label{Alg:Encode}
+\begin{algorithmic}[1]
+\Function{Encode}{$n$}
+    \State $\tilde{k}^{\texttt{u8}} \gets$ \Call{FindDataTypeIndex \ref{Alg:FindDataTypeIndex}}{$n$} \Comment{\ref{FindDataTypeIndex}}
+    \Concurrent{2}
+        \State $\tilde{h}^{\texttt{vec[u8]}} \gets$ \Call{LengthEncode \ref{Alg:LengthEncode}}{$\tilde{k}$} \Comment{\ref{LengthEncode}}
+        \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{ValueEncode \ref{Alg:ValueEncode}}{$\tilde{k},n$} \Comment{\ref{ValueEncode}}
+    \EndConcurrency
+    \State $\tilde{n}^{\texttt{vec[u8]}} \gets$ \Call{ConcatByteArrays}{$\tilde{h},\tilde{v}$} \Comment{\ref{ConcatByteArrays}}
+
+    \Return $\tilde{n}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsubsection{ValueEncode()} \label{ValueEncode}
+
+\begin{itemize}
+    \item The Algorithm \ref{Alg:ValueEncode} encodes a data type's value based on its data type index \ref{IndexOfDataTypesSection} provided in its input parameter. 
+    \item The input type of $k^{\texttt{u8}}$ is kept \texttt{u8} since the current highest index of the index of data types (see Section \ref{IndexOfDataTypesSection}) is $n<256$.
+    \item The index of data types are evaluated from higher index to lower index, since special data types shall inherit the fundamental data types.
+    \item The Algorithm \ref{Alg:ValueEncode}'s \textit{Test Cases} given in \ref{Test:ValueEncode}
+\end{itemize}
+
+\begin{algorithm}
+\caption{ValueEncode() \hfill $\bigO()$  }
+\label{Alg:ValueEncode}
+\begin{algorithmic}[1]
+\Function{ValueEncode}{$k^{\texttt{u8}},n$} 
+    \If{$24 \geq k \geq 23$} \Comment{\ref{NibbleEncoding}}
+        \State $\texttt{u8}_0(\tilde{v}^{\texttt{vec[u8]}}) \gets $ \Call{NibbleSequenceEncode \ref{Alg:NibbleSequenceEncode}}{$n$} \Comment{\ref{NibbleSequenceEncode}}
+    \ElsIf{$22 \geq \tilde{k} \geq 10$} \Comment{\ref{FixedLengthEncoding}}
+        \State $\tilde{n}^{\texttt{vec[u8]}} \gets $\Call{LeByteArray}{$n$} \Comment{\ref{LeByteArray}}
+    \ElsIf{$k = 9$} \Comment{\ref{TupleEncoding}}
+        \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{TupleEncode \ref{Alg:TupleEncode}}{$n$} \Comment{\ref{TupleEncode}}
+    \ElsIf{$8 \geq k \geq 7$} \Comment{\ref{SequenceEncoding},\ref{StringEncoding}}
+        \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{SequenceEncode \ref{Alg:SequenceEncode}}{$n$} \Comment{\ref{SequenceEncode}}
+    \ElsIf{$k = 6$} \Comment{\ref{StringEncoding}}
+        \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{StringEncode \ref{Alg:StringEncode}}{$n$} \Comment{\ref{StringEncode}}
+    \ElsIf{$k = 5$} \Comment{\ref{CharacterEncoding}}
+        \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{LeByteArray}{$n$} \Comment{\ref{LeByteArray}}
+    \ElsIf{$k = 4$} \Comment{\ref{BooleanEncoding}}
+        \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{BoolEncode \ref{Alg:BoolEncode}}{$n$} \Comment{\ref{BoolEncode}}
+    \ElsIf{$3 \geq k \geq 1$} \Comment{\ref{SomeType},\ref{ResultType}}
+        \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{Encode \ref{Alg:Encode}}{$n$} \Comment{\ref{Encode}}
+    \ElsIf{$k=0$} \Comment{\ref{NoneType}}
+        \State $\tilde{v}^{\texttt{vec[u8]}} \gets$ \Call{LengthEncode \ref{Alg:LengthEncode}}{0} \Comment{\ref{LengthEncode}}
+    \EndIf    
+
+    \Return $\tilde{v}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Decoding} \label{DecodingSpec}
+
+The blob of encoded data can be deserialized into the given type or data structure.
+
+\end{document}

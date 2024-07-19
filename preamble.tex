@@ -1,0 +1,169 @@
+% Copyright (C) 2024 Auguth Research Foundation.
+%
+% This file is part of ALAN Formal Specification Handbook.
+% A.L.A.N - Abstract Logical Assembly Network.
+%
+% License
+% --------
+% This work is licensed under the GNU Free Documentation License.
+% To view a copy of this license, visit https://www.gnu.org/licenses/fdl-1.3.html
+%
+% File Information
+% -----------------
+% - Title : ALAN - Handbook
+% - Author : Joby J Reuben
+% - Affiliation : Auguth Research Foundation
+% - Email : joby@auguth.org
+% - Created At : Bangalore, India
+% - Type : Latex-File(.tex)
+% - Path : "alan-handbook(root)/preamble.tex"
+%
+% Contributors Message 
+% ---------------------
+% 
+%
+
+% Latex Packages
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{blindtext}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{draftwatermark}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tabularray}
+\usepackage{ulem}
+\usepackage{cancel}
+\usepackage{pagecolor}
+\usepackage{textcomp}
+\usepackage{comment}
+\usepackage{titlesec}
+\usepackage{subfiles}
+\usepackage{hyperref}
+\usepackage{import}
+\usepackage{tikz}
+\usepackage{pdflscape}
+\usetikzlibrary{mindmap,trees,arrows.meta,positioning}
+\usepackage{forest}
+\usepackage{caption}
+\usepackage{lscape}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{ragged2e}
+
+% PDF Meta-Data Setup
+\hypersetup{
+    pdftoolbar=true,        
+    pdfmenubar=true,        
+    pdffitwindow=false,     
+    pdfstartview={FitH},    
+    pdftitle={"ALAN - Handbook"},    
+    pdfauthor={Joby J Reuben}, 
+    pdfproducer={Auguth Research Foundation}, 
+    pdfkeywords={keywords},
+    pdfnewwindow=true,      
+    colorlinks=true,       
+    linkcolor=red,          
+    citecolor=teal,        
+    filecolor=magenta,      
+    urlcolor=blue           
+}
+
+% Define abstract to look like a section title
+\renewenvironment{abstract}{%
+  \section*{\MakeUppercase{\abstractname}}%
+  \noindent\ignorespaces
+}{%
+  \par\medskip
+}
+
+% Custom commands to denote the start, and end of concurrent thread processes
+\NewDocumentCommand{\Concurrent}{m}{\State \textbf{concurrent} #1}
+\NewDocumentCommand{\EndConcurrency}{}{\State \textbf{end concurrency}}
+
+% Defining a new sectioning level, \subsubsubsection, using titlesec package.
+\titleclass{\subsubsubsection}{straight}[\subsection]
+\newcounter{subsubsubsection}[subsubsection]
+
+% Define \section
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+                                   {1.5ex plus 1.5ex minus 0.5ex}%
+                                   {0.7ex plus 1ex minus 0.5ex}%
+                                   {\normalfont\fontsize{12}{8}\bfseries\centering\uppercase}}
+% Define \subsection
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                      {1.5ex plus 1.5ex minus 0.5ex}%
+                                      {0.7ex plus 1ex minus 0.5ex}%
+                                      {\normalfont\fontsize{11}{10}\centering\bfseries}}
+% Define \subsubsection                                      
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                         {1.5ex plus 1.5ex minus 0.5ex}%
+                                         {0.7ex plus 1ex minus 0.5ex}%
+                                         {\normalfont\fontsize{10}{8}\bfseries}}
+
+% Redefine \subsubsubsection 
+\renewcommand\subsubsubsection{\@startsection{subsubsubsection}{4}{\z@}%
+                                          {3.25ex \@plus1ex \@minus.2ex}%
+                                          {-1em}%
+                                          {\normalfont\bfseries\sectionformatforsubsubsub}}
+
+% Define section number for \subsubsubsection
+\newcommand{\sectionformatforsubsubsub}[1]{%
+  \normalfont\fontsize{10}{8}\selectfont\ulcshape\thesubsubsubsection.#1\newline}
+
+% Define section numbering X.1 for \subsubsubsection
+\renewcommand\thesubsubsubsection{\thesubsubsection.\Alph{subsubsubsection}}
+
+% Define \titleformat for \subsubsubsection
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}
+  {}
+  {0em}
+  {}
+
+% Define paragraphs
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\parindent}%
+                                         {3.25ex \@plus1ex \@minus.2ex}%
+                                         {\normalfont\normalsize\bfseries}}
+% Define sub-paragraphs
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+                                         {3.25ex \@plus1ex \@minus .2ex}%
+                                         {\normalfont\normalsize\bfseries}}
+
+% Adjust the TOC levels
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+
+% Adjust the TOC dotted lines
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+
+% Set depth counters
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{2}
+
+\makeatother
+
+% Page Color Defined 
+\definecolor{PaleTurquoise}{RGB}{175,238,238}
+
+% Caption Setup for Algorithms to include Algorithm's Space, Time Analysis
+\captionsetup[algorithm]{justification=justified,singlelinecheck=false, format=plain}
+
+% Command for Big O notation
+\newcommand{\bigO}{\mathcal{O}}
+
+% Footer for License Note 
+\pagestyle{fancy}
+\fancyfoot[L]{\footnotesize{Licensed Under GNU FDL v1.3 (see Appendix \ref{AlanLicense})}}
+\fancyhead[R]{\textsc{ALAN Specification Handbook - \today}}
+\renewcommand{\headrulewidth}{0pt} % Remove header rule
+\renewcommand{\footrulewidth}{0pt} % Remove footer rule

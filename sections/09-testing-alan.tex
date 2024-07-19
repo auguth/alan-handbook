@@ -1,0 +1,573 @@
+% Copyright (C) 2024 Auguth Research Foundation.
+%
+% This file is part of ALAN Formal Specification Handbook.
+% A.L.A.N - Abstract Logical Assembly Network.
+%
+% License
+% --------
+% This work is licensed under the GNU Free Documentation License.
+% To view a copy of this license, visit https://www.gnu.org/licenses/fdl-1.3.html
+%
+% File Information
+% -----------------
+% - Title : ALAN - Handbook
+% - Author : Joby J Reuben
+% - Affiliation : Auguth Research Foundation
+% - Email : joby@auguth.org
+% - Created At : Bangalore, India
+% - Type : Latex-Subfile(.tex)
+% - Path : "alan-handbook(root)/sections/09-testing-alan.tex"
+%
+% Contributors Message 
+% ---------------------
+% 
+%
+\documentclass[../alan-handbook.tex]{subfiles}
+\begin{document}
+
+\section{Testing Specification (Cases)} \label{TestingSpec}
+
+Inputs, and expected output are provided in square brackets $[ ]$ as Base-16 (Hexadecimal) representations (see \ref{HexadecimalRepresentation}).
+
+If any higher-level programming language's specific data type does not accept a zero or an empty value, the empty test case can be omitted during implementation.
+
+\subsection{Encoding Functions} \label{EncodingTestsSpec}
+
+\subsubsection{LengthEncode} \label{Test:LengthEncode}
+
+The Test Cases are given for \Call{LengthEncode}{} \ref{Alg:LengthEncode} function in Section \ref{LengthEncode}.
+
+\begin{enumerate}
+    \item Small Range Case ($2^0 \leq n < 2^6$)
+        \begin{enumerate}
+            \item \texttt{u8} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u8}} = [\text{32}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{C8}_0]$
+                \end{itemize}
+            \item \texttt{u16} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u16}} = [\text{001E}]$ 
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{78}_0]$
+                \end{itemize}
+            \item \texttt{u32} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u32}} = [\text{0000001A}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{68}_0]$
+                \end{itemize}
+            \item \texttt{u64} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u64}} = [\text{000000000000000F}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{3C}_0]$
+                \end{itemize}
+            \item \texttt{u128} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u128}} = [\text{0000000000000000000000000000003C}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{F0}_0]$
+                \end{itemize}
+        \end{enumerate}
+    \item Medium Range Case ($2^6 \leq n < 2^{14}$) 
+        \begin{enumerate}
+            \item \texttt{u8} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u8}} = [\text{84}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{11}_0,\text{02}_1]$
+                \end{itemize}
+            \item \texttt{u16} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u16}} = [\text{03E8}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{A1}_0,\text{0F}_1]$
+                \end{itemize}
+            \item \texttt{u32} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u32}} = [\text{000036CE}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{39}_0,\text{DB}_1]$
+                \end{itemize}
+            \item \texttt{u64} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u64}} = [\text{0000000000003CA0}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{81}_0,\text{F2}_1]$
+                \end{itemize}
+            \item \texttt{u128} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u128}} = [\text{00000000000000000000000000003F48}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{21}_0,\text{FD}_1]$
+                \end{itemize}
+        \end{enumerate}
+    
+    \item Large Value Case ($2^{14} \leq n < 2^{30}$)
+        \begin{enumerate}
+            \item \texttt{u16} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u16}} = [\text{7D28}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{A2}_0,\text{F4}_1,\text{01}_2,\text{00}_3]$
+                \end{itemize}
+            \item \texttt{u32} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u32}} = [\text{000F5758}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{62}_0,\text{5D}_1,\text{3D}_2,\text{00}_3]$
+                \end{itemize}
+            \item \texttt{u64} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u64}} = [\text{000000000BF36334}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{D2}_0,\text{8C}_1,\text{CD}_2,\text{2F}_3]$
+                \end{itemize}
+            \item \texttt{u128} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u128}} = [\text{0000000000000000000000001FF6DAE3}]$
+                    \item \textit{Exp.Output} : $k^{\texttt{vec[u8]}} = [\text{8E}_0,\text{6B}_1,\text{DB}_2,\text{7F}_3]$
+                \end{itemize}
+        \end{enumerate}
+    
+    \item Maximum Value Case ($> n \geq 2^{30}$)
+        \begin{enumerate}
+            \item \texttt{u32} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u32}} = [\text{7D2BEC24}]$
+                    \item \textit{Exp.Output} : $$k^{\texttt{vec[u8]}} = [\text{13}_0,\text{24}_1,\text{EC}_2,\text{2B}_3,\text{7D}_4]$$
+                \end{itemize}
+            \item \texttt{u64} value
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{u64}} = [\text{0DF27A5B88562710}]$
+                    \item \textit{Exp.Output} : $$k^{\texttt{vec[u8]}} = [\text{23}_0,\text{10}_1,\text{27}_2,\text{56}_3,\text{88}_4,\text{5B}_5,\text{7A}_6,\text{F2}_7,\text{0D}_8]$$
+                \end{itemize}
+            \item \texttt{u128} value
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{u128}} = [\text{94471DBEA19A0E3DF6EB78A03D2A5740}]$$ 
+                    \item \textit{Exp.Output} : 
+                        $$
+                        \begin{matrix}
+                            k^{\texttt{vec[u8]}} = [\text{43}_0,\text{40}_1,\text{57}_2,\text{2A}_3,\text{3D}_4,\text{A0}_5,\text{78}_6,\text{EB}_7,\text{F6}_8, \\
+                            \text{3D}_9, \text{0E}_{10}, \text{9A}_{11}, \text{A1}_{12}, \text{BE}_{13}, \text{1D}_{14}, \text{47}_{15}, \text{94}_{16}]
+                        \end{matrix}
+                        $$
+                \end{itemize} 
+        \end{enumerate}
+\end{enumerate}
+
+\subsubsection{FindDataTypeIndex} \label{Test:FindDataTypeIndex}
+
+The Test Cases are given for \Call{FindDataTypeIndex}{} \ref{Alg:FindDataTypeIndex} function in Section \ref{FindDataTypeIndex}.
+
+\begin{enumerate}
+    \item \texttt{u8} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{u8}} = [\text{8A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{0A}]$
+        \end{itemize}
+    \item \texttt{u16} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{u16}} = [\text{058A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{0B}]$
+        \end{itemize}
+    \item \texttt{u32} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{u32}} = [\text{AB2D058A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{0C}]$
+        \end{itemize}
+    \item \texttt{u64} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{u64}} = [\text{AB2D058AAB2D058A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{0D}]$
+        \end{itemize}
+    \item \texttt{u128} Type
+        \begin{itemize}
+            \item \textit{Input} : $$n^{\texttt{u128}} = [\text{AB2D058AAB2D058AAB2D058AAB2D058A}]$$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{0E}]$
+        \end{itemize}
+        \item \texttt{i8} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{i8}} = [\text{8A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{0F}]$
+        \end{itemize}
+    \item \texttt{i16} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{i16}} = [\text{058A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{10}]$
+        \end{itemize}
+    \item \texttt{i32} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{i32}} = [\text{AB2D058A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{11}]$
+        \end{itemize}
+    \item \texttt{i64} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{i64}} = [\text{AB2D058AAB2D058A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{12}]$
+        \end{itemize}
+    \item \texttt{i128} Type
+        \begin{itemize}
+            \item \textit{Input} : $$n^{\texttt{i128}} = [\text{AB2D058AAB2D058AAB2D058AAB2D058A}]$$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{13}]$
+        \end{itemize}
+    \item \texttt{f32} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{f32}} = [\text{AB2D058A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{14}]$
+        \end{itemize}
+    \item \texttt{f64} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{f64}} = [\text{AB2D058AAB2D058A}]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{15}]$
+        \end{itemize}
+    \item \texttt{bool} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{bool}} = \text{true}$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{04}]$
+        \end{itemize}
+    \item \texttt{char} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{char}} = "\text{A}"$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{05}]$
+        \end{itemize}
+    \item \texttt{str} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{str}} = "\text{Hello}" $
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{06}]$
+        \end{itemize}
+    \item \texttt{ary} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{ary[u8:3]}} = [\text{A1}_0,\text{65}_1,\text{D2}_2] $
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{08}]$
+        \end{itemize}
+    \item \texttt{vec} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{vec[u8]}} = [\text{A1}_0,\text{65}_1,\text{D2}_2,\text{FF}_3] $
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{07}]$
+        \end{itemize}
+    \item \texttt{tup} Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{tup[u8,char]}} = [\text{A1}_0,\text{"A"}_1] $
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{09}]$
+        \end{itemize}
+    \item Option Type
+        \begin{enumerate}
+            \item \texttt{none} Type 
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{none:i}} = [  ] $
+                    \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{00}]$
+                \end{itemize}
+            \item \texttt{some} Type
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{some:u8}} = [\text{A4}] $
+                    \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{01}]$
+                \end{itemize}
+        \end{enumerate}
+    \item Result Type
+        \begin{enumerate}
+            \item \texttt{Ok} Type 
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{Ok:u8}} = [\text{7D}] $
+                    \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{02}]$
+                \end{itemize}
+            \item \texttt{Err} Type
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{Err:u8}} = [\text{8C}] $
+                    \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{03}]$
+                \end{itemize}
+        \end{enumerate}
+    % Special Data Types Below
+    \item Nibble Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{nib}} = [\text{A5}] $
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{16}]$
+        \end{itemize}
+    \item Nibble Vector Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{vec[nib]}} = [\text{A5}_0,\text{7C}_0]$
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{17}]$
+        \end{itemize}
+    \item Nibble Array Type
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{ary[nib:2]}} = [\text{A5}_0,\text{7C}_0] $
+            \item \textit{Exp.Output} : $k^{\texttt{u8}} = [\text{18}]$
+        \end{itemize}
+\end{enumerate}
+
+\subsubsection{BoolEncode} \label{Test:BoolEncode}
+
+The Test Cases are given for \Call{BoolEncode}{} \ref{Alg:BoolEncode} function in Section \ref{BoolEncode}.
+
+\begin{enumerate}
+    \item True Case 
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{bool}} = \texttt{true}$
+            \item \textit{Exp.Output} : $v^{\texttt{vec}[u8]} = [\text{01}_0]$
+        \end{itemize}
+    \item False Case
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{bool}} = \texttt{false}$
+            \item \textit{Exp.Output} : $v^{\texttt{vec}[u8]} = [\text{00}_0]$
+        \end{itemize}
+\end{enumerate}
+
+
+\subsubsection{SequenceEncode} \label{Test:SequenceEncode}
+
+The Test Cases are given for \Call{SequenceEncode}{} \ref{Alg:SequenceEncode} function in Section \ref{SequenceEncode}.
+
+\begin{enumerate}
+    \item Array 
+        \begin{enumerate}
+            \item Empty \texttt{u8} Array
+                \begin{itemize}
+                    \item \textit{Input} : $n^{\texttt{ary[u8:0]}} = []$
+                    \item \textit{Exp.Output} : $v^{\texttt{vec[u8]}} = [\text{00}_0]$
+                \end{itemize}
+            \item Result Type Array
+            \begin{enumerate}
+                \item \texttt{u8},\texttt{i8} Result Type Array
+                    \begin{itemize}
+                        \item \textit{Input} : $$n^{\texttt{ary[[[Ok:u8],[Err:i8]]:2]}} = [(\texttt{Ok}:\text{AF}),(\texttt{Err}:\text{F8})]$$
+                        \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{08}_1,\text{28}_2,\text{AF}_3,\text{0C}_4,\text{3C}_5,\text{F8}_6]$$
+                    \end{itemize}
+                \item \texttt{u64},\texttt{str} Result Type Array
+                    \begin{itemize}
+                        \item \textit{Input} : $$\begin{matrix}n^{\texttt{ary[[[Ok:u64],[Err:str]]:2]}} = \\ [(\texttt{Ok}:\text{7CFCA468A85CAB82}),(\texttt{Err}:\text{"Hello"})]\end{matrix}$$
+                        \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{08}_0,\text{08}_1,\text{34}_2,\text{82}_3, \text{AB}_4,\text{5C}_5, \\ \text{A8}_6,\text{68}_7, \text{A4}_8,\text{FC}_9, \text{7C}_{10}, \text{0C}_{11}, \\ \text{18}_{12}, \text{14}_{13}, \text{6F}_{14},\text{6C}_{15},\text{6C}_{16},\text{65}_{17},\text{48}_{18}]\end{matrix}$$
+                    \end{itemize}
+                \item \texttt{f32},\texttt{char} Result Type Array
+                    \begin{itemize}
+                        \item \textit{Input} : $$\begin{matrix}n^{\texttt{ary[[[Ok:f32],[Err:char]]:2]}} = \\ [(\texttt{Ok}:\text{7CFCAB82}),(\texttt{Err}:\text{"A"})]\end{matrix}$$
+                        \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{08}_0,\text{08}_1,\text{50}_2,\text{82}_3, \\ \text{AB}_4,\text{FC}_5,\text{7C}_6,\text{0C}_7,\text{14}_8,\text{41}_9,\text{00}_{10},\text{00}_{11},\text{00}_{12}]\end{matrix}$$
+                    \end{itemize}
+                \item \texttt{bool},\texttt{nib} Result Type Array
+                    \begin{itemize}
+                        \item \textit{Input} : $$\begin{matrix}n^{\texttt{ary[[[Ok:bool],[Err:nib]]:3]}} = \\ [(\texttt{Ok}:\texttt{true}),(\texttt{Err}:\text{06}),(\texttt{Err}:\text{0A})]\end{matrix}$$
+                        \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{0C}_0,\text{08}_1,\text{10}_2,\text{01}_3, \\ \text{0C}_4,\text{58}_5,\text{06}_6,\text{0C}_7,\text{58}_8,\text{0A}_9]\end{matrix}$$
+                    \end{itemize}
+            \end{enumerate}
+            \item Option Type Array
+            \begin{enumerate}
+                \item \texttt{none},\texttt{i8} Option Type Array
+                    \begin{itemize}
+                        \item \textit{Input} : $$n^{\texttt{ary[[[none],[some:i8]]:2]}} = [(\texttt{none},(\texttt{some}:\text{F7}))]$$
+                        \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{00}_1,\text{04}_2, \text{3C}_3,\text{F7}_4]$$
+                    \end{itemize}
+                \item \texttt{none},\texttt{str} Option Type Array
+                    \begin{itemize}
+                        \item \textit{Input} : $$\begin{matrix}n^{\texttt{ary[[[none],[some:str]]:2]}} = \\ [(\texttt{none},(\texttt{some}:\text{"Hello"}))] \end{matrix}$$
+                        \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{08}_0,\text{00}_1,\text{04}_2, \\ \text{18}_3, \text{14}_4,\text{6F}_5,\text{6C}_6,\text{6C}_7,\text{65}_8,\text{48}_9]\end{matrix}$$
+                    \end{itemize}
+                \item \texttt{none},\texttt{char} Option Type Array
+                    \begin{itemize}
+                        \item \textit{Input} : $$\begin{matrix}n^{\texttt{ary[[[none],[some:char]]:2]}} = \\ [(\texttt{none},(\texttt{some}:\text{"A"}))]\end{matrix}$$
+                        \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{08}_0,\text{00}_1,\text{04}_2,\\ \text{14}_3, \text{41}_4,\text{00}_5,\text{00}_6,\text{00}_7]\end{matrix}$$
+                    \end{itemize}
+                \item \texttt{none},\texttt{nib} Option Type Array
+                    \begin{itemize}
+                        \item \textit{Input} : $$\begin{matrix}n^{\texttt{ary[[[none],[some:nib]]:3]}} = \\ [(\texttt{none},(\texttt{some}:\text{0F}),(\texttt{some}:\text{02}))]\end{matrix}$$
+                        \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{0C}_0,\text{00}_1,\text{04}_2, \\ \text{58}_3, \text{0F}_4,\text{04}_5,\text{58}_6,\text{02}_7]\end{matrix}$$
+                    \end{itemize}
+            \end{enumerate}
+            \item \texttt{u8} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{ary[u8:3]}} = [\text{98}_0,\text{FA}_1,\text{6A}_2]$$
+                    \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{0C}_0,\text{28}_1,\text{98}_0,\text{FA}_2,\text{6A}_3]$$
+                \end{itemize}
+            \item \texttt{i16} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{ary[i16:1]}} = [\text{A6FB}_0]$$
+                    \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{04}_0,\text{40}_1,\text{FB}_0,\text{A6}_2]$$
+                \end{itemize}
+            \item \texttt{f64} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$\begin{matrix}n^{\texttt{ary[f64:2]}} = [\text{28514A12A7A5BD5A}_0, \\ \text{37A90E4551D3A8AA}_1]\end{matrix}$$
+                    \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{08}_0,\text{54}_1,\text{5A}_2,\text{BD}_3,\text{A5}_4,\text{A7}_5,\text{12}_6,\\\text{4A}_7,\text{51}_8,\text{28}_9,\text{AA}_{10},\text{A8}_{11},\text{D3}_{12},\\\text{51}_{13},\text{45}_{14},\text{0E}_{15},\text{A9}_{16},\text{37}_{17}]\end{matrix}$$
+                \end{itemize}
+            \item \texttt{char} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{ary[char:2]}} = [\text{"A"}_0, \text{"B"}_1]$$
+                    \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{08}_0,\text{14}_1,\text{41}_2,\text{00}_3, \\ \text{00}_4,\text{00}_5,\text{42}_6,\text{00}_7,\text{00}_8,\text{00}_9]\end{matrix}$$
+                \end{itemize}
+            \item \texttt{bool} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{ary[bool:3]}} = [\texttt{true}_0,\texttt{true}_1,\texttt{false}_2]$$
+                    \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{0C}_0,\text{10}_1,\text{01}_2,\text{01}_3,\text{00}_4]$$
+                \end{itemize}
+            \item \texttt{str} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{ary[str:2]}} = [\text{"Hello"}_0,\text{"Bob"}_1]$$
+                    \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{08}_0,\text{18}_1,\text{14}_2,\text{6F}_3, \\ \text{6C}_4,\text{6C}_5,\text{65}_6,\text{48}_7,\text{0C}_8,\text{62}_9,\text{6F}_{10},\text{42}_{11}]\end{matrix}$$
+                \end{itemize}
+            \item \texttt{nib} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{ary[nib:2]}} = [\text{05}_0,\text{0B}_1]$$
+                    \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{58}_1,\text{05}_2,\text{0B}_3]$$
+                \end{itemize}
+            \item \texttt{vec[nib]} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{ary[vec[nib]:2]}} = [([\text{05}_0,\text{0B}_1]),([\text{0A}_0,\text{03}_1,\text{02}_2])]$$
+                    \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{5C}_1,\text{04}_2,\text{00}_3,\text{5B}_4,\text{08}_5,\text{01}_6,\text{0A}_7,\text{32}_8]$$
+                \end{itemize}
+            \item \texttt{ary[nib:2]} Array
+                \begin{itemize}
+                    \item \textit{Input} : $$n^{\texttt{ary[ary[nib:2]:2]}} = [([\text{05}_0,\text{0B}_1]),([\text{0A}_0,\text{03}_1])]$$
+                    \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{60}_1,\text{04}_2,\text{00}_3,\text{5B}_4,\text{04}_5,\text{00}_6,\text{A3}_7]$$
+                \end{itemize}
+        \end{enumerate}
+    \item Vector : Test cases derived from Array can be tested for Vectors where $\textit{Input} : n^{\texttt{vec[i]}}$.
+\end{enumerate}
+
+\subsubsection{TupleEncode} \label{Test:TupleEncode}
+
+The Test Cases are given for \Call{TupleEncode}{} \ref{Alg:TupleEncode} function in Section \ref{TupleEncode}.
+
+\begin{enumerate}
+    \item Empty Tuple Type 
+        \begin{itemize}
+            \item \textit{Input} : $$ n^{\texttt{tup[]}}  = []$$
+            \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{00}_0]$$
+        \end{itemize}
+    \item Fixed Length Types Tuple
+        \begin{itemize}
+            \item \textit{Input} : $$ n^{\texttt{tup[(u8),(i16),(f32)]}}  = [(\text{8B}),(\text{F6BA}),(\text{F78A34BD})]$$
+            \item \textit{Exp.Output} : $$\begin{matrix}v^{\texttt{vec[u8]}} = [\text{0C}_0,\text{28}_1,\text{8B}_2,\text{40}_3,\text{BA}_4,\\ \text{F6}_5,\text{50}_6,\text{BD}_7,\text{34}_8,\text{8A}_9,\text{F7}_{10}]\end{matrix}$$
+        \end{itemize}
+    \item String \texttt{nib} Type \& Char \texttt{char} Type Tuple
+        \begin{itemize}
+            \item \textit{Input} : $$ n^{\texttt{tup[(str),(char)]}}  = [(\text{"Hi"}),(\text{"K"})]$$
+            \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{18}_1,\text{08}_2,\text{69}_3,\text{48}_4,\text{14}_5,\text{4B}_6,\text{00}_7,\text{00}_8,\text{00}_9]$$
+        \end{itemize}
+    \item Tuple of : Vector Type of \texttt{u16} of length 2 \& Array Type of \texttt{bool} of length 2 
+        \begin{itemize}
+            \item \textit{Input} : $$n^{\texttt{tup[(vec[u8]),(ary[bool:2])]}} = [([(\text{7B}),(\text{9F})]),([(\texttt{true}),(\texttt{false})])]$$
+            \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{1C}_1,\text{08}_2,\text{28}_3,\text{7B}_4,\text{9F}_5,\text{20}_6,\text{08}_7,\text{10}_8,\text{01}_9,\text{00}_{10}]$$
+        \end{itemize}
+    \item Tuple of : Vector of \texttt{nib} of length 3 \& Nibble \texttt{nib} Type 
+        \begin{itemize}
+            \item \textit{Input} : $$n^{\texttt{tup[(vec[nib]),(nib)]}} = [([(\text{0B}),(\text{0F}),(\text{05})]),(\text{0A})]$$
+            \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{5C}_1,\text{08}_2,\text{01}_3,\text{0B}_4,\text{F5}_5,\text{58}_6,\text{0A}_7]$$
+        \end{itemize}
+    \item Tuple of : Array of \texttt{nib} of length 2 \& Nibble \texttt{nib} Type
+        \begin{itemize}
+            \item \textit{Input} : $$n^{\texttt{tup[(ary[nib:2]),(nib)]}} = [([(\text{0B}),(\text{0F})]),(\text{0A})]$$
+            \item \textit{Exp.Output} : $$v^{\texttt{vec[u8]}} = [\text{08}_0,\text{60}_1,\text{04}_2,\text{00}_3,\text{BF}_4,\text{58}_5,\text{0A}_6]$$
+        \end{itemize}
+\end{enumerate}
+
+\subsubsection{StringEncode} \label{Test:StringEncode}
+
+The Test Cases are given for \Call{StringEncode}{} \ref{Alg:StringEncode} function in Section \ref{StringEncode}.
+
+\begin{enumerate}
+    \item Empty String Type
+    \begin{itemize}
+        \item \textit{Input} : $n^{\texttt{str}} = "" $
+        \item \textit{Exp.Output} : $v^{\texttt{vec[u8]}} = [\text{00}_0]$
+    \end{itemize}
+    \item Single Length String 
+    \begin{itemize}
+        \item \textit{Input} : $n^{\texttt{str}} = "A" $
+        \item \textit{Exp.Output} : $v^{\texttt{vec[u8]}} = [\text{04}_0,\text{41}_1]$
+    \end{itemize}
+    \item Normal Case
+    \begin{itemize}
+        \item \textit{Input} : $n^{\texttt{str}} = "Alan" $
+        \item \textit{Exp.Output} : $v^{\texttt{vec[u8]}} = [\text{10}_0,\text{6E}_1,\text{61}_2,\text{6C}_3,\text{41}_4]$
+    \end{itemize} 
+\end{enumerate}
+
+\subsubsection{NibbleSequenceEncode} \label{Test:NibbleSequenceEncode}
+
+The Test Cases are given for \Call{NibbleSequenceEncode}{} \ref{Alg:NibbleSequenceEncode} function in Section \ref{NibbleSequenceEncode}.
+
+\begin{enumerate}
+    \item Vector Case
+    \begin{enumerate}
+        \item Empty Case 
+            \begin{itemize}
+                \item \textit{Input} : $n^{\texttt{vec[nib]}} = []$
+                \item \textit{Exp.Output} : $v^{\texttt{vec[nib]}} = [\text{00}]$
+            \end{itemize}
+        \item Single Nibble Case 
+            \begin{itemize}
+                \item \textit{Input} : $n^{\texttt{vec[nib]}} = [\text{05}_0]$
+                \item \textit{Exp.Output} : $v^{\texttt{vec[nib]}} = [\text{04}_0,\text{01}_1,\text{05}_2]$
+            \end{itemize}
+        \item Odd Case 
+            \begin{itemize}
+                \item \textit{Input} : $n^{\texttt{vec[nib]}} = [\text{04}_0,\text{0D}_1,\text{0A}_2]$
+                \item \textit{Exp.Output} : $v^{\texttt{vec[nib]}} = [\text{08}_0,\text{01}_1,\text{04}_2,\text{DA}_3]$
+            \end{itemize}
+        \item Even Case
+            \begin{itemize}
+                \item \textit{Input} : $n^{\texttt{vec[nib]}} = [\text{06}_0,\text{0C}_1,\text{0F}_2,\text{03}_3]$
+                \item \textit{Exp.Output} : $v^{\texttt{vec[nib]}} = [\text{08}_0,\text{00}_1,\text{6C}_2,\text{F3}_3]$
+            \end{itemize}
+    \end{enumerate}
+    \item Array Case : Test cases derived from Vector can be tested for Nibble Arrays where $\textit{Input} : n^{\texttt{ary[nib:N]}}$
+\end{enumerate}
+
+\subsubsection{ValueEncode} \label{Test:ValueEncode}
+
+The Test Cases are given for \Call{ValueEncode}{} \ref{Alg:ValueEncode} function in Section \ref{ValueEncode}. Test cases are derived from several test cases such as 
+
+\begin{enumerate}
+    \item Derive Test Cases from \Call{NibbleSequence}{} (see Section \ref{Test:NibbleSequenceEncode}) where, the \textit{Input} $k$ is,
+        \begin{itemize}
+            \item $k^{\texttt{u8}}=23$ if $\texttt{type} \in n^{\texttt{type[nib]}} = \texttt{vec}$ 
+            \item $k^{\texttt{u8}}=24$ if $\texttt{type} \in n^{\texttt{type[nib]}} = \texttt{ary}$
+        \end{itemize}
+    \item Derive Test Cases from \Call{TupleEncode}{} (see Section \ref{Test:TupleEncode}) where, the \textit{Input} : $k^{\texttt{u8}}=9$
+    \item Derive Test Cases from \Call{SequenceEncode}{} (see Section \ref{Test:SequenceEncode}) where, the \textit{Input} $k$ is,
+        \begin{itemize}
+            \item $k^{\texttt{u8}}=7$ if $\texttt{type} \in n^{\texttt{type}} = \texttt{vec}$
+            \item $k^{\texttt{u8}}=8$ if $\texttt{type} \in n^{\texttt{type}} = \texttt{ary}$
+        \end{itemize}
+    \item Derive Test Cases from \Call{StringEncode}{} (see Section \ref{Test:StringEncode}) where, the \textit{Input} : $k^{\texttt{u8}}=6$
+    \item Derive Test Cases from \Call{BoolEncode}{} (see Section \ref{Test:BoolEncode}) where, the \textit{Input} : $k^{\texttt{u8}}=4$
+    \item For \texttt{some} Type, \texttt{Ok} Type, and \texttt{Err} Type, Derive Test Cases from, 
+        \begin{enumerate}
+            \item \Call{NibbleSequence}{} (see Section \ref{Test:NibbleSequenceEncode})
+            \item \Call{TupleEncode}{} (see Section \ref{Test:TupleEncode})
+            \item \Call{SequenceEncode}{} (see Section \ref{Test:SequenceEncode})
+            \item \Call{BoolEncode}{} (see Section \ref{Test:BoolEncode})
+        \end{enumerate}
+    \item \texttt{none} Type, Derive \textit{Zero or Empty Length} Individual Test Cases from,
+        \begin{enumerate}
+            \item \Call{NibbleSequence}{} (see Section \ref{Test:NibbleSequenceEncode})
+            \item \Call{TupleEncode}{} (see Section \ref{Test:TupleEncode})
+            \item \Call{SequenceEncode}{} (see Section \ref{Test:SequenceEncode})
+            \item \Call{BoolEncode}{} (see Section \ref{Test:BoolEncode})
+        \end{enumerate}
+\end{enumerate}
+
+\subsection{Decoding Functions}
+
+\subsection{Supplementary Functions}
+
+\subsubsubsection{ShiftLeByteArrayBitToMsb} \label{Test:ShiftLeByteArrayBitToMsb}
+
+The Test Cases are given for \Call{ShiftLeByteArrayBitToMsb}{}  function in Section \ref{ShiftLeByteArrayBitToMsb}.
+
+\begin{enumerate}
+    \item Empty Byte Array
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{vec[u8]}},k^{\texttt{u8}} = [  ], [\text{05}]$
+            \item \textit{Exp.Output} : $i^{\texttt{vec[u8]}} = [  ]$
+        \end{itemize}
+    \item Zero Bit Shift
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{vec[u8]}},k^{\texttt{u8}} = [\text{32}_0,\text{AF}_1], [\text{00}]$
+            \item \textit{Exp.Output} : $i^{\texttt{vec[u8]}} = [\text{32}_0,\text{AF}_1]$
+        \end{itemize}
+    \item Single Bit Shift 
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{vec[u8]}},k^{\texttt{u8}} = [\text{32}_0,\text{AF}_1], [\text{01}]$
+            \item \textit{Exp.Output} : $i^{\texttt{vec[u8]}} = [\text{64}_0,\text{5E}_1,\text{01}_2]$
+        \end{itemize}
+    \item Odd Bit Shift
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{vec[u8]}},k^{\texttt{u8}} = [\text{32}_0,\text{AF}_1], [\text{03}]$
+            \item \textit{Exp.Output} : $i^{\texttt{vec[u8]}} = [\text{20}_0,\text{F3}_1,\text{0A}_2]$
+        \end{itemize}
+    \item 8 Bit Shift 
+        \begin{itemize}
+            \item \textit{Input} : $n^{\texttt{vec[u8]}},k^{\texttt{u8}} = [\text{32}_0,\text{AF}_1], [\text{08}]$
+            \item \textit{Exp.Output} : $i^{\texttt{vec[u8]}} = [\text{00}_0,\text{32}_1,\text{AF}_2]$
+        \end{itemize}
+\end{enumerate}
+
+
+\end{document}

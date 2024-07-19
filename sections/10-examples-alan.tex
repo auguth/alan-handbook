@@ -1,0 +1,388 @@
+% Copyright (C) 2024 Auguth Research Foundation.
+%
+% This file is part of ALAN Formal Specification Handbook.
+% A.L.A.N - Abstract Logical Assembly Network.
+%
+% License
+% --------
+% This work is licensed under the GNU Free Documentation License.
+% To view a copy of this license, visit https://www.gnu.org/licenses/fdl-1.3.html
+%
+% File Information
+% -----------------
+% - Title : ALAN - Handbook
+% - Author : Joby J Reuben
+% - Affiliation : Auguth Research Foundation
+% - Email : joby@auguth.org
+% - Created At : Bangalore, India
+% - Type : Latex-Subfile(.tex)
+% - Path : "alan-handbook(root)/sections/10-examples-alan.tex"
+%
+% Contributors Message 
+% ---------------------
+% 
+%
+\documentclass[../alan-handbook.tex]{subfiles}
+\begin{document}
+
+\subsection{Specification Examples} \label{Specification Examples}
+
+This section includes all extended examples that provide pseudo-values to help understand topics that are covered in Alan's specifications. 
+
+\subsubsection{LittleEndian} \label{Eg:LittleEndian}
+
+The Examples are given for \Call{LittleEndian}{} function defined in Section \ref{LittleEndian}.
+
+Lets take a non-negative integer of value $k = 8500000$
+
+The binary (\texttt{base2}) value of $k$ is
+
+$$k = \{10000001_0 \ 10110011_1 \ 00100000_2\}$$ 
+
+or $k = \text{0x}\{\text{81}_0 \ \text{B3}_1 \ \text{20}_2\}$ in \texttt{base-16} hex representation
+
+The little-endian byte order is achieved by reversing the order of the bytes (but not reversing the bits within each byte). This reversal is because, in little-endian order, the least significant byte comes first.
+$$\{00100000_0 \ 10110011_1 \ 10000001_2\} \ \text{or} \ \{\text{20}_0 \ \text{B3}_1 \ \text{81}_2\}_{\text{base-16}}$$ 
+
+Alternatively, we can define in \texttt{base-256}, $\mathbb{Z}(8500000) = \{129_0,179_1,32_2\}$ where $(32\times 256^0) + (179\times 256^1) + (129 \times 256^2) = 8500000$
+
+Hence the \textit{Little Endian} of $8500000_{\mathbb{Z}} = \{32_0,179_1,129_2\}$
+
+\subsubsection{Length Encoding} \label{Eg:LengthEncoding}
+
+The Examples are given for \Call{LengthEncode}{} function (see Algorithm \ref{Alg:LengthEncode}) defined in Section \ref{LengthEncoding}.
+
+For \textbf{Case 1 (1 Byte)} where $0 \leq n < 2^6$ i.e., $0 \leq n < 63$
+
+Lets take a non-negative integer of value $n=50$
+
+\begin{itemize}
+    \item Binary Representation = $110010_0$ (6 bits)
+    \item Complete Byte Representation = $00110010_0$ (8 bits)
+    \item Little Endian Encoding = $00110010_0$ (8 bits)
+    \item Since Little Endian acts on byte array the representation for 1 byte is the same
+    \item Shifting Bits to Right by 2 bits = $11001000_0$ (8 bits)
+    \item Replacing Least Significant Bits $(b_1^0,b_0^0) = (0,0) = 11001000_0$ (8 bits)
+    \item Since 8 bits = 1 Byte for Case 1
+\end{itemize}
+
+Hence $$11001000_0 \gets \Call{LengthEncode}{50}$$
+\textit{Proof}:
+\begin{itemize}
+    \item $(b_1^0,b_0^0)=(0,0)$ as least significant bits (LSb) of the least significant byte (LSB) representing 1-byte format length ($\mathbb{B}_1$).
+    \item Hence, $n=(b_7^0 \cdot 2^5)+ \ldots + (b_5^0 \cdot 2^0),b_1^0,b_0^0$
+    \item Where $b_n^m$ represents 
+        $$\text{bit}^{\text{byte number}}_{\text{bit number}}$$
+    \item The byte (see Section \ref{ByteArray}) is of the structure 
+        $$\mathbb{B}_n = (B_0,B_1,\ldots B_{n-1})$$
+    \item The bit number (see Section \ref{BitwiseRepresentation}) is of the structure 
+        $$B=(b_7,\ldots,b_0)$$
+    \item With $11001000 \gets \Call{LengthEncode}{50}$, the integer will be $2^5+2^4+2^1=50=n$ represented in 1 Byte
+\end{itemize} 
+
+
+For \textbf{Case 2 (2 Byte)} where $2^6 \leq n < 2^{14}$ i.e., $64 \leq n < 16383$
+
+Lets take a non-negative integer of value $n=10000$
+
+\begin{itemize}
+    \item Binary Representation = $100111_0 \ 00010000_1$ (14 Bits)
+    \item Complete Byte Representation = $00100111_0 \ 00010000_1$ (16 Bits)
+    \item Little Endian Encoding = $00100111_1 \ 00010000_0$ (16 bits)
+    \item Shifting Bits to Right by 2 bits = $10011100 \ 01000000_0$ (16 bits)
+    \item Replacing Least Significant Bits $(b_1^0,b_0^0) = (0,1) = 1001110001000001$ (16 bits)
+    \item Since 16 bits = 2 Bytes for Case 2
+\end{itemize}
+
+
+Hence $10011100_1 \ 01000001_0 \gets \Call{LengthEncode}{10000}$
+
+\textit{Proof}:
+\begin{itemize}
+\item $(b_1^0,b_0^0)=(0,1)$ as least significant bits (LSb) of the least significant byte (LSB) representing 2-byte format length ($\mathbb{B}_2$).
+\item Hence, $n=(b_7^0 \cdot 2^5)+ \ldots + (b_2^0 \cdot 2^0) + (b_7^1 \cdot 2^{13}) + \ldots (b_0^1 \cdot 2^6)$
+\item With $10011100_1 \ 01000001_0 \gets \Call{LengthEncode}{10000}$, the integer will be $2^4+2^8+2^9+2^{10}+2^{13}=10000=n$ represented in two bytes
+\end{itemize} 
+
+For \textbf{Case 3 (4 Byte)} where $2^{14} \leq n < 2^{30}$ i.e., $16384 \leq n < 1073741823$ is similar to \textbf{Case 2} with additional two bytes
+
+
+For \textbf{Case 4 ($m+1$ Bytes)} where $n \geq 2^{30}$ i.e., $n \geq 1073741824$
+
+Lets take a non-negative integer with value $n=10000000000$
+
+\begin{itemize}
+    \item Binary Representation = \\
+    $1001010100000010111110010000000000$ (34 Bits)
+    \item Complete Byte Representation (40 Bits) = 
+    $$00000010_0 \ 01010100_1 \ 00001011_2 \ 11100100_3 \ 00000000_4$$ 
+    \item Little Ending Encoding (40 Bits) = 
+    $$00000010_4 \ 01010100_3 \ 00001011_2 \ 11100100_1 \ 00000000_0$$ 
+    \item Find the Length of Original Integer (Total Number of Bytes) = 34 Bits = $\frac{2^{34}}{8 \text{bits per byte}} =  \lceil 4.25 \rceil = 5 $. Hence $m=5$
+    \item Total Bytes to Represent the $n$  is $m+1=6$ is 6 bytes
+    \item Extra Byte = $00010111$, where $b_1,b_0=1,1$ is the LSb representing the case of variable integer $n \geq 2^{30}$, and rest $000101 = 2^0+2^2=5$ is the length of original integer $m$
+    \item Extra byte as Least Significant Byte = $00000010_5 \ 01010100_4 \ 00001011_3 \ 11100100_2 \ 00000000_1 \parallel 00010111_0$  (48 bits)
+\end{itemize}
+
+Hence 
+$$
+\begin{matrix}
+    00000010_5 \ 01010100_4 \ 00001011_3 \ 11100100_2 \ 00000000_1 \ \\
+    00010111_0 \gets \Call{LengthEncode}{10000000000}
+\end{matrix}
+$$
+
+\textit{Proof}: 
+\begin{itemize}
+\item $(b_1^0,b_0^0)=(1,1)$ as least significant bytes representing $m+1$ byte format length ($\mathbb{B}_{m+1}$) including the LSb, where $\mathbb{B}_0$ is the Extra Byte, and $\mathbb{B}_{m+1}\ldots \mathbb{B}_{1}$ represent the integer information
+\item $\{b^0_7,\ldots,b^0_2\} = 000101_{base2} = 5_{base10}$, this provides that the total bytes will be 5 i.e., based on zeroth-index is $5-1=4$ from $\mathbb{B}_{4},\ldots,\mathbb{B}_0$
+\item So we take the next 5 bytes $00000010_4 \ 01010100_3 \ 00001011_2 \ 11100100_1 \ 00000000_0$ from which we can derive its base256 $2\cdot 256^4+84\cdot 256^3+11\cdot 256^2+228\cdot 256^1+0\cdot 256^0$ = $8589934592 + 1409286144 + 720896 + 58368$ = $10000000000$
+\end{itemize}
+
+\subsubsection{Varying Data Type} \label{Eg:VaryingDataType}
+
+Let's take $A=\{A_{\text{type}},A_{\text{value}}\}=\{\texttt{u8},175\}$. For this varying data type, we know that the index of \texttt{u8} data type is $10$ according to Index of Data Types (see Section \ref{IndexOfDataTypesSection}), the encoding would be 
+$$
+\begin{matrix}
+    \Call{Encode}{A}=\Call{LengthEncode}{10 \in T_{10}(\mathcal{T})} \\ 
+    \parallel \Call{Encode}{\texttt{u8}=175}
+\end{matrix}
+$$
+
+where, $ \{00101000_0\} \gets \Call{LengthEncode}{10}$. Hence, 
+
+$$\Call{Encode}{A} = \{00101000_0\} \parallel \Call{Encode}{\texttt{u8}=175}$$ 
+
+\subsubsection{Some Type} \label{Eg:SomeType}
+
+The encoding for the Some type (a type with value present) i.e., from Index of Data Types (see Section \ref{IndexOfDataTypesSection}) a \texttt{u8} type with index $i=10 \in T_i(\mathcal{T})$ with value 175 i.e., $A=\{A_{\text{type}},A_{\text{value}}\}=\{\texttt{u8},175\}$ would be,
+
+$$
+\begin{matrix}
+    \Call{Encode}{A}=\Call{LengthEncode}{1 \in T_1(\mathcal{T})} \parallel \\
+    \Call{LengthEncode}{10 \in T_{10}(\mathcal{T})} \parallel \Call{Encode}{\texttt{u8}=500}
+\end{matrix}
+$$
+
+where, 
+\begin{itemize}
+    \item \Call{LengthEncode}{} (see Section \ref{LengthEncode} \& Algorithm \ref{Alg:LengthEncode}) is used.
+    \item $1 \in T_1(\mathcal{T})=\texttt{Some}$ because \texttt{Some} is the second element in the ordered set $\mathcal{T}$ (see Section \ref{IndexOfDataTypesSection}) which has a zero-based indexing.
+    \item $\{00000100_0\} \gets \Call{LengthEncode}{1}$
+\end{itemize}
+
+Hence the result would be
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{u8}, 500} = \{00000100_0\} \parallel \\
+    \Call{LengthEncode}{10 \in T_{10}(\mathcal{T})} \parallel \Call{Encode}{\texttt{u8}=500}
+\end{matrix}
+$$
+
+\subsubsection{Result Type} \label{Eg:ResultType}
+
+The encoding for the Result type of $\texttt{Ok}$ would be, $\Call{Encode}{2 \in T_2(\mathcal{T}), A_{\text{type}}  A_{\text{value}}}$ according to Index of Data Types (see Section \ref{IndexOfDataTypesSection})
+
+Lets take an example of $\Call{Encode}{\texttt{Ok},\texttt{u8}, 500}$. The encoding scheme will be similar to Some Type Example (see Section \ref{Eg:SomeType}),
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{Ok},\texttt{u8}, 500} = \Call{LengthEncode}{2} \parallel \\ 
+    \Call{LengthEncode}{4} \parallel \Call{Encode}{\texttt{u8}=500}
+\end{matrix}
+$$
+
+The encoding result would be,
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{Ok},\texttt{u8}, 500} = \{00001000_0\} \parallel \\ 
+    \Call{LengthEncode}{4} \parallel \Call{Encode}{\texttt{u8}=500}
+\end{matrix}    
+$$
+
+The encoding for the Result type of $\texttt{Err}$ would be, $\Call{Encode}{3 \in T_2(\mathcal{T}), A_{\text{type}}  A_{\text{value}}}$ according to Index of Data Types (see Section \ref{IndexOfDataTypesSection})
+
+Lets take an example of $\Call{Encode}{\texttt{Err},\texttt{u8}, 500}$. The encoding scheme will be similar to Some Type Example (see Section \ref{Eg:SomeType}),
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{Err},\texttt{u8}, 500} = \Call{LengthEncode}{3} \parallel \\ 
+    \Call{LengthEncode}{4} \parallel \Call{Encode}{\texttt{u8}=500}
+\end{matrix}
+$$
+
+The encoding result would be,
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{Err},\texttt{u8}, 500} = \{00001100_0\} \parallel \\ 
+    \Call{LengthEncode}{4} \parallel \Call{Encode}{\texttt{u8}=500}
+\end{matrix}
+$$
+
+\subsubsection{Character Encoding} \label{Eg:CharacterEncoding}
+
+Since a character is a UTF-8 Encoded value which has a maximum length of 4 bytes, The character encoding involves conversion of a \texttt{char} value to a little endian byte array 
+
+Let's take an example of a character in UTF-8 : \textit{Latin Capital Letter A With Tilde} in double quotes ``$\tilde{A}$" the unicode decimal is given as $195$, and its unicode byte of length 4 bytes (in big endian format) is $\{0000000_0 \ 0000000_1 \ 10000011_2 \ 11000011_3\}$
+
+The encoding of a character \texttt{char} of \textit{Latin Capital Letter A With Tilde} in double quotes ``$\tilde{A}$" will be
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{char} = \tilde{A}} = \Call{LengthEncode}{5} \parallel \\
+    \Call{LittleEndian}{0000000_0 \ 0000000will be_1 \ 10000011_2 \ 11000011_3}
+\end{matrix}
+$$
+
+where, $\Call{LengthEncode}{5}$ represents \texttt{char}'s index according to Index of Data Types (see Section \ref{IndexOfDataTypesSection})
+
+The encoding result will be,
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{char} = \tilde{A}} = \{00010100_0 \ 11000011_1 \ \\
+    10000011_2 \ 00000000_3 \ 00000000_4\}
+\end{matrix}
+$$
+
+\subsubsection{Sequence Encoding} \label{Eg:SequenceEncoding}
+
+The encoding for sequence type which involves \texttt{vec,ary}
+
+\begin{enumerate}
+    \item For an example of an \texttt{u8} array $\Call{Encode}{\texttt{ary}[\texttt{u8}:2]}$, the encoding would be,
+            $$
+            \begin{matrix}
+                \Call{Encode}{\texttt{ary}[\texttt{u8}:2]} = \Call{LengthEncode}{8} \parallel \\ 
+                \Call{LengthEncode}{2} \parallel \Call{LengthEncode}{10} \parallel \\
+                \Call{ValueEncode}{\texttt{u8}_0} \\
+                \ldots \parallel \Call{ValueEncode}{\texttt{u8}_1} \ref{ValueEncode}
+            \end{matrix}
+            $$
+
+            where,
+            \begin{itemize}
+                \item  $\Call{LengthEncode}{8}$: Represents \texttt{array}'s index of varying data type (see Section \ref{IndexOfDataTypesSection})
+                \item $\Call{LengthEncode}{2}$: Represents two elements in the array 
+                \item $\Call{LengthEncode}{10}$: Represents \texttt{u8}'s index of varying data type (see Section \ref{IndexOfDataTypesSection})
+                \item $\Call{ValueEncode}$ (see Section \ref{ValueEncode}): Encodes only the value without involving the data type index, as sequences will have same type elements, it is only necessary to include its first element's data type.
+            \end{itemize}
+        \item For an example of an \texttt{u8} vector $\Call{Encode}{\texttt{vec}[\texttt{u8}]}$, the encoding would be,
+            $$
+            \begin{matrix}
+                \Call{Encode}{\texttt{vec}[\texttt{u8}]} = \Call{LengthEncode}{7} \parallel \\ 
+                \Call{LengthEncode}{\mid \texttt{vec} \mid}  \parallel \Call{LengthEncode}{10} \\
+                \parallel \Call{ValueEncode}{\texttt{u8}_0} \ldots \parallel \Call{ValueEncode}{\texttt{u8}_{(\mid \texttt{vec} \mid -1)}}
+            \end{matrix}
+            $$
+        \item For elements of sequences of data types \texttt{Result} (see Section \ref{ResultType}), the encoding would be,
+            $$
+            \begin{matrix}
+                \Call{Encode}{\texttt{vec}[(\texttt{Ok:u8}),(\texttt{Err:i16})]} = \Call{LengthEncode}{7} \parallel \\ 
+                \Call{LengthEncode}{2} \parallel \Call{Encode}{{\texttt{Ok} \ \vee \texttt{Err}}_0} \parallel \ldots \\ 
+                \parallel \Call{Encode}{{\texttt{Ok} \ \vee \texttt{Err}}_n}
+            \end{matrix}
+            $$
+            where,
+            \begin{itemize}
+                \item Instead of the first element's data type, all the elements are subjected to individual encoding similar to tuple encoding (see Section \ref{TupleEncoding})
+            \end{itemize}
+        \item For elements of sequences of data types \texttt{Option} (see Section \ref{OptionType}), the encoding would be,
+            $$
+            \begin{matrix}
+                \Call{Encode}{\texttt{vec}[(\texttt{none}),(\texttt{some:i16})]} = \Call{LengthEncode}{7} \parallel \\ 
+                \Call{LengthEncode}{2} \parallel \Call{Encode}{{\texttt{none} \ \vee \texttt{some}}_0} \parallel \ldots \\ 
+                \parallel \Call{Encode}{{\texttt{none} \ \vee \texttt{some}}_n}
+            \end{matrix}
+            $$
+\end{enumerate}
+
+\subsubsection{Tuple Encoding} \label{Eg:TupleEncoding}
+
+Since tuples have multiple different type sequences, every individual element shall be encoded individually, whereas the number of elements is similar to sequence encoding.
+
+Lets take an example of an \texttt{u8,u16,u32} tuple $\Call{Encode}{\texttt{tup}[\texttt{u8,u16,u32}]}$ would be encoded as follows:
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{tup}} = \Call{LengthEncode}{9} \parallel \\ 
+    \Call{LengthEncode}{\mid \texttt{tup} \mid}  \parallel \Call{Encode}{\texttt{u8}_0} \\
+    \parallel \Call{Encode}{\texttt{u16}_1} \parallel \Call{Encode}{\texttt{u32}_2}
+\end{matrix}
+$$
+
+where,
+\begin{itemize}
+    \item $\Call{LengthEncode}{9}$ represents \texttt{tuple}'s varying data type index (see Section \ref{IndexOfDataTypesSection})
+    \item $\mid \texttt{tup} \mid$ represents the length of the tuple, i.e., the number of elements in the tuple. In the above example, it is three.
+\end{itemize}
+
+\subsubsection{String Encoding} \label{Eg:StringEncoding}
+
+A string is a byte array that includes a sequence of UTF-8 elements. Since, the UTF-8 bytes self describes lengths of each element, it requires to be encoded in little endian order.
+
+Lets Take an example string "Hello" for which the big endian UTF-8 byte sequence will be $\{01001000_0 \ 01100101_1 \ 01101100_2 \ 01101100_3 \ 01101111_4\}$
+
+The encoding of string "Hello" is defined as,
+
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{str} = \text{"Hello"}} = \Call{LengthEncode}{6} \parallel \\
+    \Call{LittleEndian}{01001000_0 \ 01100101_1 \\ 
+    \ 01101100_2 \ 01101100_3 \ 01101111_4}
+\end{matrix}
+$$
+
+where, $\Call{LengthEncode}{6}$ represents \texttt{str}'s index $T_6(\mathcal{T})$ according to Index of Data Types (see Section \ref{IndexOfDataTypesSection})
+
+The encoding result will be,
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{str} = \text{"Hello"}} = \{00011000_0 \ 01101111_1 \\ 
+    01101100_2 \ 01101100_3 \ 01100101_4 \ 01001000_5\}
+\end{matrix}
+$$
+
+
+\subsubsection{Nibble Encoding} \label{Eg:NibbleEncoding}
+
+Lets take a nibble of value $\texttt{nib}^{\texttt{u8}} = 00000110$ where each \texttt{nib} is a \texttt{u8} value of $\texttt{u8}<16$
+
+The encoding result of $\texttt{nib}^{\texttt{u8}} = 00000110$ would be 
+$$
+\begin{matrix}
+    \Call{Encode}{\texttt{nib}^{\texttt{u8}} = 00000110} = \\
+    \Call{LengthEncode}{22} \parallel 00000110
+\end{matrix}
+$$
+
+\subsubsection{Nibble Sequence Encoding} \label{Eg:NibbleSequenceEncoding}
+
+Lets take an odd nibble sequence of length $3$ i.e., number of elements $\{00001010_0 \ 00001101_1 \ 00000011_2\}$ where according to $\texttt{nib}^{\texttt{u8}}$ (see Section \ref{Eg:NibbleEncoding}) each nibble is a $\texttt{u8}$ value 
+
+The encoding result of the odd nibble vector sequence would be 
+$$
+\begin{matrix}
+    \Call{NibbleSequenceEncode}{\texttt{vec[nib]}= \{00001010_0 \ \\
+    00001101_1 \ 00000011_2\} } = \Call{LengthEncode}{23} \parallel \\
+    \Call{LengthEncode}{2} \parallel 00001010_0 \parallel (16 \times 00001101_1 + 00000011_2)
+\end{matrix}
+$$
+
+where,
+\begin{itemize}
+    \item $\Call{LengthEncode}{23}$: Represents \texttt{vec[nib]}'s index of varying data type (see Section \ref{IndexOfDataTypesSection})
+    \item Here, according to the Nibble Sequence Encoding specification (see Section \ref{NibbleEncoding}), for odd case the first nibble $\texttt{nib}_0$ remains as is, and the subsequent pairs of nibbles are combined into bytes
+    \item $\Call{LengthEncode}{2}$: Represents total number of bytes in the post-encoded byte array.
+\end{itemize}
+
+Lets take an even nibble sequence of length $4$ : $\{00001010_0 \ 00001101_1 \ 00000011_2 \ 00001101_3\}$. 
+
+The encoding result of an even nibble vector sequence would be 
+$$
+\begin{matrix}
+    \Call{NibbleSequenceEncode}{\texttt{vec[u8]}= \{00001010_0 \ 00001101_1 \\ 
+    \ 00000011_2 \ 00001101_3\}} = \Call{LengthEncode}{23} \parallel \\
+    \Call{LengthEncode}{2} \parallel (16_{\texttt{base10}} \times 00001010_0 + 00001101_1) \\
+    \parallel (16_{\texttt{base10}} \times 00000011_2 + 00001101_3)
+\end{matrix}
+$$
+
+Similarly for nibble array sequence i.e., \texttt{ary[nib:N]} the index of varying data type (see Section \ref{IndexOfDataTypesSection}) only changes.
+
+\end{document}
